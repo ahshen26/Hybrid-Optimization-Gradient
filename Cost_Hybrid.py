@@ -2,7 +2,8 @@ import numpy as np
 from scipy.integrate import quad
 from probFinder import func_getProb
 from scipy.stats import norm
-from scipy.optimize import root_scalar
+from scipy.optimize import root_scalar, minimize
+
 
 def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
     dimension = len(input.shape)
@@ -149,13 +150,16 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
                 typeIerror_array[m, n, :] = typeIerror
                 power_array[m, n, :] = power
                 nTreatmentArm_array[m, n] = N_t
-                cost_array[m, n] = 1 - power[len(power) // 2] - 0.5 * N_t + (1000*max(typeIerror) - 0.07)(1000*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (1000*0.77 - min(power))(1000*(0.77 - min(power)) if min(power) < 0.77 else 0)
-
+                cost_array[m, n] = (1 - power[len(power) // 2] - 0.5 * N_t + (1000 * max(typeIerror) - 0.07) * (1000 * (max(typeIerror) - 0.07) if max(typeIerror) > 0.07 else 0) + (1000 * 0.77 - min(power)) * (1000 * (0.77 - min(power)) if min(power) < 0.77 else 0))
             elif dimension == 2:
                 typeIerror_array[m, :] = typeIerror
                 power_array[m, :] = power
                 nTreatmentArm_array[m] = N_t
-                cost_array[m] = 1 - power[len(power) // 2] - 0.5 * N_t + (1000*max(typeIerror) - 0.07)(1000*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (1000*0.77 - min(power))(1000*(0.77 - min(power)) if min(power) < 0.77 else 0)
+                cost_array[m] = (
+                1 - power[len(power) // 2]
+                - 0.5 * N_t
+                + (1000 * max(typeIerror) - 0.07) * (1000 * (max(typeIerror) - 0.07) if max(typeIerror) > 0.07 else 0)
+                + (1000 * 0.77 - min(power)) * (1000 * (0.77 - min(power)) if min(power) < 0.77 else 0))
 
             else:
                 typeIerror_array = typeIerror
@@ -164,24 +168,61 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
                 cost_array = 1 - power[len(power) // 2] - 0.5 * N_t + (1000*max(typeIerror) - 0.07)(1000*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (1000*0.77 - min(power))(1000*(0.77 - min(power)) if min(power) < 0.77 else 0)
 
     return typeIerror_array, power_array, nTreatmentArm_array, cost_array
+def objective_function(params, input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
+    r, EQ_margin = params  
 
-def calculate_gradient(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
-    r = input[0]  
-    EQ_margin = input[1]  
-    N_t = int(N * r)
-    w = q / (1 + q - r)
-    x1_var = sigma**2 / (N * r * (1 - r))
-    x2_var = sigma**2 * (1 + q - r) / (N * q * (1 - r))
-    x3_var = sigma**2 * (1 + q) / (N * r * (1 + q - r))
-    x1_mean = effectSize
-    x2_mean = bias
+    # adjust input based on its shape
+    modified_input = input.copy()
 
-    # Placeholder for gradients
-    grad = np.zeros(2)
-    typeIerror, power, _, _ = fun_Power(input.reshape((1, -1, 1)), N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
-    #grad[0] =
-    #grad[1] = 
+    if modified_input.ndim == 3:
+        modified_input[0, :, :] = r  # update r for 3d
+        modified_input[1, :, :] = EQ_margin  # update EQ for 3d input
+    elif modified_input.ndim == 2:
+        modified_input[0, :] = r  # update r for 2d
+        modified_input[1, :] = EQ_margin  # update EQ for 2d input
+    elif modified_input.ndim == 1:
+        modified_input[0] = r  # update r for 1d
+        modified_input[1] = EQ_margin  # update EQ_margin for 1d input
 
-    return grad
+    # get the cost_array 
+    _, _, _, cost_array = fun_Power(modified_input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+
+    # im returning the mean cost but can use a diffferent metric for optimizing 
+    return np.mean(cost_array)
+
+def optimize_parameters(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin):
+    initial_params = [initial_r, initial_EQ_margin]
+    bounds = [(0.1, 0.9), (0, 1)]  # bounds 
+
+    result = minimize(objective_function, initial_params, args=(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration), bounds=bounds, method='Nelder-Mead')
+    
+    if result.success:
+        optimized_r, optimized_EQ_margin = result.x
+        print(f"Optimized r: {optimized_r}, Optimized EQ_margin: {optimized_EQ_margin}")
+        return optimized_r, optimized_EQ_margin
+    else:
+        print("Optimization failed.")
+        print(result)  
+        return None, None
+
+# example
+N = 200  
+q = 1.0  
+effectSize = 0.5  #
+bias = 0.1  #
+sigma = 1.0  
+alpha = 0.05  
+alpha_EQ = 0.05  
+calibration = 1  #
+initial_r = 0.5  #  guess for r
+initial_EQ_margin = 0.25  # guess for EQ_margin
+
+
+# a 2D array input with size (2, 10)
+input_data = np.random.rand(2, 10)  # replace with actual input data
+
+optimized_r, optimized_EQ_margin = optimize_parameters(input_data, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin)
+
+
 
 
