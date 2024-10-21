@@ -173,6 +173,7 @@ def objective_function(params, input, N, q, effectSize, bias, sigma, alpha, alph
 
     # adjust input based on its shape
     modified_input = input.copy()
+<<<<<<< HEAD
 
     if modified_input.ndim == 3:
         modified_input[0, :, :] = r  # update r for 3d
@@ -216,6 +217,59 @@ alpha_EQ = 0.05
 calibration = 1  #
 initial_r = 0.5  #  guess for r
 initial_EQ_margin = 0.25  # guess for EQ_margin
+=======
+
+    if modified_input.ndim == 3:
+        modified_input[0, :, :] = r  # update r for 3d
+        modified_input[1, :, :] = EQ_margin  # update EQ for 3d input
+    elif modified_input.ndim == 2:
+        modified_input[0, :] = r  # update r for 2d
+        modified_input[1, :] = EQ_margin  # update EQ for 2d input
+    elif modified_input.ndim == 1:
+        modified_input[0] = r  # update r for 1d
+        modified_input[1] = EQ_margin  # update EQ_margin for 1d input
+
+    # get the cost_array 
+    _, _, _, cost_array = fun_Power(modified_input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+
+    # im returning the mean cost but can use a diffferent metric for optimizing 
+    return np.mean(cost_array)
+
+def optimize_parameters(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin):
+    initial_params = [initial_r, initial_EQ_margin]
+    bounds = [(0.1, 0.9), (0, 1)]  # bounds 
+
+    result = minimize(objective_function, initial_params, args=(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration), bounds=bounds, method='Nelder-Mead')
+    
+    if result.success:
+        optimized_r, optimized_EQ_margin = result.x
+        print(f"Optimized r: {optimized_r}, Optimized EQ_margin: {optimized_EQ_margin}")
+        return optimized_r, optimized_EQ_margin
+    else:
+        print("Optimization failed.")
+        print(result)  
+        return None, None
+
+# example
+N = 200  
+q = 1.0  
+effectSize = 0.5  #
+bias = 0.1  #
+sigma = 1.0  
+alpha = 0.05  
+alpha_EQ = 0.05  
+calibration = 1  #
+initial_r = 0.5  #  guess for r
+initial_EQ_margin = 0.25  # guess for EQ_margin
+
+
+# a 2D array input with size (2, 10)
+input_data = np.random.rand(2, 10)  # replace with actual input data
+
+optimized_r, optimized_EQ_margin = optimize_parameters(input_data, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin)
+
+
+>>>>>>> 5291349f8fa5c4ce2be30d381b6dd0bce1260ec4
 
 
 # a 2D array input with size (2, 10)
