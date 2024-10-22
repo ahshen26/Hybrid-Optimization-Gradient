@@ -269,11 +269,3 @@ input_data = np.random.rand(2, 10)  # replace with actual input data
 optimized_r, optimized_EQ_margin = optimize_parameters(input_data, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin)
 
 
->>>>>>> 5291349f8fa5c4ce2be30d381b6dd0bce1260ec4
-
-
-# a 2D array input with size (2, 10)
-input_data = np.random.rand(2, 10)  # replace with actual input data
-
-optimized_r, optimized_EQ_margin = optimize_parameters(input_data, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin)
-
