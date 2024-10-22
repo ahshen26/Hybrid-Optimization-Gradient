@@ -168,104 +168,130 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
                 cost_array = 1 - power[len(power) // 2] - 0.5 * N_t + (1000*max(typeIerror) - 0.07)(1000*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (1000*0.77 - min(power))(1000*(0.77 - min(power)) if min(power) < 0.77 else 0)
 
     return typeIerror_array, power_array, nTreatmentArm_array, cost_array
-def objective_function(params, input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
-    r, EQ_margin = params  
+# def objective_function(params, input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
+#     r, EQ_margin = params  
+# # It is (2,) or (2,x) or (2,x,x)
+# #The first one is the first parameter, the second one is the second parameter 
+# #Each parameter can be a single number a 1d array, or a 2d array
+#     # adjust input based on its shape
+#     modified_input = input.copy()
 
-    # adjust input based on its shape
-    modified_input = input.copy()
-<<<<<<< HEAD
+#     if modified_input.ndim == 3:
+#         modified_input[0, :, :] = r  # update r for 3d
+#         modified_input[1, :, :] = EQ_margin  # update EQ for 3d input
+#     elif modified_input.ndim == 2:
+#         modified_input[0, :] = r  # update r for 2d
+#         modified_input[1, :] = EQ_margin  # update EQ for 2d input
+#     elif modified_input.ndim == 1:
+#         modified_input[0] = r  # update r for 1d
+#         modified_input[1] = EQ_margin  # update EQ_margin for 1d input
 
-    if modified_input.ndim == 3:
-        modified_input[0, :, :] = r  # update r for 3d
-        modified_input[1, :, :] = EQ_margin  # update EQ for 3d input
-    elif modified_input.ndim == 2:
-        modified_input[0, :] = r  # update r for 2d
-        modified_input[1, :] = EQ_margin  # update EQ for 2d input
-    elif modified_input.ndim == 1:
-        modified_input[0] = r  # update r for 1d
-        modified_input[1] = EQ_margin  # update EQ_margin for 1d input
+#     # get the cost_array 
+#     _, _, _, cost_array = fun_Power(modified_input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
 
-    # get the cost_array 
-    _, _, _, cost_array = fun_Power(modified_input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+#     # im returning the mean cost but can use a diffferent metric for optimizing 
+#     return np.mean(cost_array)
 
-    # im returning the mean cost but can use a diffferent metric for optimizing 
-    return np.mean(cost_array)
+# def optimize_parameters(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin):
+#     initial_params = [initial_r, initial_EQ_margin]
+#     bounds = [(0.1, 0.9), (0, 1)]  # bounds 
 
-def optimize_parameters(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin):
-    initial_params = [initial_r, initial_EQ_margin]
-    bounds = [(0.1, 0.9), (0, 1)]  # bounds 
-
-    result = minimize(objective_function, initial_params, args=(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration), bounds=bounds, method='Nelder-Mead')
+#     result = minimize(objective_function, initial_params, args=(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration), bounds=bounds, method='Nelder-Mead')
     
-    if result.success:
-        optimized_r, optimized_EQ_margin = result.x
-        print(f"Optimized r: {optimized_r}, Optimized EQ_margin: {optimized_EQ_margin}")
-        return optimized_r, optimized_EQ_margin
-    else:
-        print("Optimization failed.")
-        print(result)  
-        return None, None
+#     if result.success:
+#         optimized_r, optimized_EQ_margin = result.x
+#         print(f"Optimized r: {optimized_r}, Optimized EQ_margin: {optimized_EQ_margin}")
+#         return optimized_r, optimized_EQ_margin
+#     else:
+#         print("Optimization failed.")
+#         print(result)  
+#         return None, None
 
-# example
-N = 200  
-q = 1.0  
-effectSize = 0.5  #
-bias = 0.1  #
-sigma = 1.0  
-alpha = 0.05  
-alpha_EQ = 0.05  
-calibration = 1  #
-initial_r = 0.5  #  guess for r
-initial_EQ_margin = 0.25  # guess for EQ_margin
-=======
-
-    if modified_input.ndim == 3:
-        modified_input[0, :, :] = r  # update r for 3d
-        modified_input[1, :, :] = EQ_margin  # update EQ for 3d input
-    elif modified_input.ndim == 2:
-        modified_input[0, :] = r  # update r for 2d
-        modified_input[1, :] = EQ_margin  # update EQ for 2d input
-    elif modified_input.ndim == 1:
-        modified_input[0] = r  # update r for 1d
-        modified_input[1] = EQ_margin  # update EQ_margin for 1d input
-
-    # get the cost_array 
-    _, _, _, cost_array = fun_Power(modified_input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
-
-    # im returning the mean cost but can use a diffferent metric for optimizing 
-    return np.mean(cost_array)
-
-def optimize_parameters(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin):
-    initial_params = [initial_r, initial_EQ_margin]
-    bounds = [(0.1, 0.9), (0, 1)]  # bounds 
-
-    result = minimize(objective_function, initial_params, args=(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration), bounds=bounds, method='Nelder-Mead')
-    
-    if result.success:
-        optimized_r, optimized_EQ_margin = result.x
-        print(f"Optimized r: {optimized_r}, Optimized EQ_margin: {optimized_EQ_margin}")
-        return optimized_r, optimized_EQ_margin
-    else:
-        print("Optimization failed.")
-        print(result)  
-        return None, None
-
-# example
-N = 200  
-q = 1.0  
-effectSize = 0.5  #
-bias = 0.1  #
-sigma = 1.0  
-alpha = 0.05  
-alpha_EQ = 0.05  
-calibration = 1  #
-initial_r = 0.5  #  guess for r
-initial_EQ_margin = 0.25  # guess for EQ_margin
+# # example
+# N = 200  
+# q = 1.0  
+# effectSize = 0.5  #
+# bias = 0.1  #
+# sigma = 1.0  
+# alpha = 0.05  
+# alpha_EQ = 0.05  
+# calibration = 1  #
+# initial_r = 0.5  #  guess for r
+# initial_EQ_margin = 0.25  # guess for EQ_margin
 
 
 # a 2D array input with size (2, 10)
-input_data = np.random.rand(2, 10)  # replace with actual input data
+#input_data = np.random.rand(2, 10)  # replace with actual input data
 
-optimized_r, optimized_EQ_margin = optimize_parameters(input_data, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin)
+#optimized_r, optimized_EQ_margin = optimize_parameters(input_data, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, initial_r, initial_EQ_margin)
+
+# NEWTON RAPHSON METHOD
+
+def newton_raphson(params, input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, epsilon=1e-6):
+    max_iterations = 100
+    r, EQ_margin = params
+
+    # define cost function
+    def cost_function(params):
+        modified_input = input.copy()
+        if modified_input.ndim == 3:
+            modified_input[0, :, :] = params[0]
+            modified_input[1, :, :] = params[1]
+        elif modified_input.ndim == 2:
+            modified_input[0, :] = params[0]
+            modified_input[1, :] = params[1]
+        else:
+            modified_input[0] = params[0]
+            modified_input[1] = params[1]
+
+        _, _, _, cost_array = fun_Power(modified_input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+        return np.mean(cost_array)
+
+
+    for _ in range(max_iterations):
+        f_value = cost_function(params)
+        
+        # numerical approximation of the gradient using finite differences
+        gradient = np.zeros_like(params)
+        for i in range(len(params)):
+            params_temp = params.copy()
+            params_temp[i] += epsilon
+            gradient[i] = (cost_function(params_temp) - f_value) / epsilon
+
+        # update parameters using Newton-Raphson method
+        params -= f_value / gradient
+
+    return params
+# sample data
+N = 200  
+q = 1.0  
+effectSize = 0.5  
+bias = 0.1  
+sigma = 1.0  
+alpha = 0.05  
+alpha_EQ = 0.05  
+calibration = 1  
+initial_r = 0.5  
+initial_EQ_margin = 0.25  
+
+# dummy input data
+input_data = np.random.rand(2, 10)  # 2 rows for r and EQ_margin
+
+# run newton method
+optimized_params = newton_raphson(
+    np.array([initial_r, initial_EQ_margin]),
+    input_data,
+    N,
+    q,
+    effectSize,
+    bias,
+    sigma,
+    alpha,
+    alpha_EQ,
+    calibration
+)
+
+print("Optimized parameters:", optimized_params)
+
 
 
