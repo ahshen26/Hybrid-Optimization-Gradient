@@ -229,6 +229,7 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
 
 def newton_raphson(params, input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration, epsilon=1e-6):
     max_iterations = 100
+    tol = 1e-6  # tolerance for convergence
     r, EQ_margin = params
 
     # define cost function
@@ -247,19 +248,24 @@ def newton_raphson(params, input, N, q, effectSize, bias, sigma, alpha, alpha_EQ
         _, _, _, cost_array = fun_Power(modified_input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
         return np.mean(cost_array)
 
-
     for _ in range(max_iterations):
         f_value = cost_function(params)
-        
-        # numerical approximation of the gradient using finite differences
         gradient = np.zeros_like(params)
         for i in range(len(params)):
             params_temp = params.copy()
             params_temp[i] += epsilon
             gradient[i] = (cost_function(params_temp) - f_value) / epsilon
 
-        # update parameters using Newton-Raphson method
-        params -= f_value / gradient
+        # no division by 0, control step
+        gradient += epsilon
+        step = f_value / gradient
+        step = np.clip(step, -0.1, 0.1)  # step size limit
+
+        params -= step
+        # check for convergence
+        if np.linalg.norm(step) < tol:
+            print("Convergence achieved.")
+            break
 
     return params
 # sample data
@@ -271,7 +277,7 @@ sigma = 1.0
 alpha = 0.05  
 alpha_EQ = 0.05  
 calibration = 1  
-initial_r = 0.5  
+initial_r = 0.5
 initial_EQ_margin = 0.25  
 
 # dummy input data
