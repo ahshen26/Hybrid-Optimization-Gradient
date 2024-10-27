@@ -15,7 +15,7 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
         nTreatmentArm_array = np.zeros((n_col, n_row))
         cost_array = np.zeros((n_col, n_row))
     elif dimension == 2:
-        n_col = input.shape[1]
+        n_col = input.shape[0]
         n_row = 1
         typeIerror_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.05))))
         power_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.05))))
@@ -35,8 +35,8 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
                 r = input[0, m, n]
                 EQ_margin = input[1, m, n]  # 0.3
             elif dimension == 2:
-                r = input[0, m]
-                EQ_margin = input[1, m]  # 0.3
+                r = input[m, 0]
+                EQ_margin = input[m, 1]  # 0.3
             else:
                 r = input[0]
                 EQ_margin = input[1]  # 0.3
