@@ -70,13 +70,15 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
                 cutoffValue_no_borr = cutoffValue_borr
             elif calibration == 2:
                 def root_function(z):
-                    return func_getProb(z, 0, 0, 0, x1_var, x2_var, x3_var, cov_Z1Z2, theta, "all") - alpha
+                    # Standardization
+                    return func_getProb(z, 0, 0, 0, 1, 1, 1, cov_Z1Z2/np.sqrt(x1_var)/np.sqrt(x2_var), theta/np.sqrt(x2_var), "all") - alpha
 
                 sol = root_scalar(root_function, bracket=[0, 10], method='brenth', xtol=1e-12, maxiter=10000)
-                cutoffValue_borr = cutoffValue_no_borr = sol.root
+                cutoffValue_borr = sol.root*np.sqrt(x3_var)
+                cutoffValue_no_borr = sol.root*np.sqrt(x1_var)
             elif calibration == 3:
 
-                p = input[2]
+                p = 0.54
 
                 max_no_borr = func_getProb(0, 0, 0, 0, x1_var, x2_var, x3_var, cov_Z1Z2, theta, "outside")
                 max_borr = func_getProb(0, 0, 0, 0, x1_var, x2_var, x3_var, cov_Z1Z2, theta, "inside")
@@ -87,7 +89,7 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
                 if typeIerror_no_borr > max_no_borr:
                     cutoffValue_no_borr = 0
                     def root_function_borr(z):
-                        return func_getProb(z, 0, 0, 0, x1_var, x2_var, x3_var, cov_Z1Z2, theta, "inside")[2] - (alpha - max_no_borr)
+                        return func_getProb(z, 0, 0, 0, x1_var, x2_var, x3_var, cov_Z1Z2, theta, "inside") - (alpha - max_no_borr)
                     sol_borr = root_scalar(root_function_borr, bracket=[0, 10], method='brenth', xtol=1e-12, maxiter=10000)
                     cutoffValue_borr = sol_borr.root
                 elif typeIerror_borr > max_borr:
@@ -132,18 +134,18 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
                 typeIerror_array[m, n, :] = typeIerror
                 power_array[m, n, :] = power
                 nTreatmentArm_array[m, n] = N_t
-                cost_array[m, n] = (1 - power[len(power) // 2] - 0.01 * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
+                cost_array[m, n] = (1 - power[len(power) // 2] - 0.005 * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
 
             elif dimension == 2:
                 typeIerror_array[m, :] = typeIerror
                 power_array[m, :] = power
                 nTreatmentArm_array[m] = N_t
-                cost_array[m] = (1 - power[len(power) // 2] - 0.01 * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
+                cost_array[m] = (1 - power[len(power) // 2] - 0.005 * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
 
             else:
                 typeIerror_array = typeIerror
                 power_array = power
                 nTreatmentArm_array = N_t
-                cost_array = (1 - power[len(power) // 2] - 0.01 * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
+                cost_array = (1 - power[len(power) // 2] - 0.005 * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
 
     return typeIerror_array, power_array, nTreatmentArm_array, cost_array
