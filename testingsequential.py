@@ -6,9 +6,9 @@ import Cost_Sequential
 
 # Parameters
 N = 200
-r1 = 0.5  # Randomization ratio
-q1 = 1    # Quantile 1
-q2 = 1    # Quantile 2
+r1 = 0.5  
+q1 = 1    
+q2 = 1    
 effectSize = 0.3962035
 bias = 0
 sigma = 1
