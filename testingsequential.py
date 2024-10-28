@@ -35,20 +35,18 @@ result_DA = dual_annealing(cost_function, bounds=bounds)
 intervals = np.arange(-0.6, 0.61, 0.05)
 power_data = {}
 
-for val in intervals:
-    test_input = np.array([result_min.x[0], result_min.x[1], val]).reshape((3,1,1))
-    _, powers_min, _, _ = Cost_Sequential.fun_Power(test_input, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
-    _, powers_shgo, _, _ = Cost_Sequential.fun_Power(test_input, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
-    _, powers_DA, _, _ = Cost_Sequential.fun_Power(test_input, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
-    power_data[f'Power_{round(val, 4)}'] = [powers_min[0][0], powers_shgo[0][0], powers_DA[0][0]]
-
-
 results = {
     'Split Ratio': [result_min.x[0], result_shgo.x[0], result_DA.x[0]],
     'Randomization Ratio': [result_min.x[1], result_shgo.x[1], result_DA.x[1]],
     'Equivalence Margin': [result_min.x[2], result_shgo.x[2], result_DA.x[2]],
     'Cost': [result_min.fun, result_shgo.fun, result_DA.fun],
-    **power_data
+    'Power': [Cost_Sequential.fun_Power(result_min.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[1],
+              Cost_Sequential.fun_Power(result_shgo.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[1],
+              Cost_Sequential.fun_Power(result_DA.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[1]],
+    'TypeIerror': [Cost_Sequential.fun_Power(result_min.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[0],
+              Cost_Sequential.fun_Power(result_shgo.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[0],
+              Cost_Sequential.fun_Power(result_DA.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[0]],
+
 }
 
 df_results = pd.DataFrame(results, index=['minimize', 'shgo', 'dual_annealing'])
