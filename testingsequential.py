@@ -14,12 +14,12 @@ bias = 0
 sigma = 1
 alpha = 0.05
 alpha_EQ = 0.2
-calibration = 4
+calibration = 1
 
 def extract_cost(params, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
     split_ratio, randomization_ratio, eq_margin = params
     input_array = np.array([split_ratio, randomization_ratio, eq_margin]).reshape((3,1,1))
-    _, _, _, cost = Cost_Sequential.fun_Power(input_array, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+    _, _, treatment_arm, cost = Cost_Sequential.fun_Power(input_array, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
     return cost
 
 # initial guesses for parameters: [split ratio, randomization ratio, equivalence margin]
@@ -32,24 +32,19 @@ result_min = minimize(cost_function, x0, method='trust-constr', bounds=bounds)
 result_shgo = shgo(cost_function, bounds=bounds)
 result_DA = dual_annealing(cost_function, bounds=bounds)
 
-intervals = np.arange(-0.6, 0.61, 0.05)
-power_data = {}
-
+# added treatment arm results
 results = {
     'Split Ratio': [result_min.x[0], result_shgo.x[0], result_DA.x[0]],
     'Randomization Ratio': [result_min.x[1], result_shgo.x[1], result_DA.x[1]],
     'Equivalence Margin': [result_min.x[2], result_shgo.x[2], result_DA.x[2]],
     'Cost': [result_min.fun, result_shgo.fun, result_DA.fun],
-    'Power': [Cost_Sequential.fun_Power(result_min.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[1],
-              Cost_Sequential.fun_Power(result_shgo.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[1],
-              Cost_Sequential.fun_Power(result_DA.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[1]],
-    'TypeIerror': [Cost_Sequential.fun_Power(result_min.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[0],
-              Cost_Sequential.fun_Power(result_shgo.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[0],
-              Cost_Sequential.fun_Power(result_DA.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[0]],
-
+    'Treatment Arm Minimize': Cost_Sequential.fun_Power(result_min.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[2][0][0],
+    'Treatment Arm SHGO': Cost_Sequential.fun_Power(result_shgo.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[2][0][0],
+    'Treatment Arm DA': Cost_Sequential.fun_Power(result_DA.x, N, r1, q1, q2, effectSize, bias, sigma, alpha, alpha_EQ, calibration)[2][0][0],
 }
 
 df_results = pd.DataFrame(results, index=['minimize', 'shgo', 'dual_annealing'])
 df_results.to_csv(f'/Users/arlinashen/Downloads/Gradient_Optimization/Sequential_result_C{calibration}.csv', index=True)
 print(f"Results saved for calibration = {calibration}")
+
 
