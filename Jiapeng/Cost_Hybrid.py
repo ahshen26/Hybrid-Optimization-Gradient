@@ -4,7 +4,7 @@ from probFinder import func_getProb
 from scipy.stats import norm
 from scipy.optimize import root_scalar
 
-def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
+def fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
     dimension = len(input.shape)
 
     if dimension == 3:
@@ -34,12 +34,18 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
             if dimension == 3:
                 r = input[0, m, n]
                 EQ_margin = input[1, m, n]  # 0.3
+                if calibration == 3:
+                    p = input[2, m, n]
             elif dimension == 2:
                 r = input[m, 0]
                 EQ_margin = input[m, 1]  # 0.3
+                if calibration == 3:
+                    p = input[m, 2]
             else:
                 r = input[0]
                 EQ_margin = input[1]  # 0.3
+                if calibration == 3:
+                    p = input[2]
 
             N_t = np.round(N * r)
             r = N_t / N
@@ -77,8 +83,6 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
                 cutoffValue_borr = sol.root*np.sqrt(x3_var)
                 cutoffValue_no_borr = sol.root*np.sqrt(x1_var)
             elif calibration == 3:
-
-                p = 0.54
 
                 max_no_borr = func_getProb(0, 0, 0, 0, x1_var, x2_var, x3_var, cov_Z1Z2, theta, "outside")
                 max_borr = func_getProb(0, 0, 0, 0, x1_var, x2_var, x3_var, cov_Z1Z2, theta, "inside")
@@ -134,18 +138,18 @@ def fun_Power(input, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration
                 typeIerror_array[m, n, :] = typeIerror
                 power_array[m, n, :] = power
                 nTreatmentArm_array[m, n] = N_t
-                cost_array[m, n] = (1 - power[len(power) // 2] - 0.005 * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
+                cost_array[m, n] = (1 - power[len(power) // 2] - weight * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
 
             elif dimension == 2:
                 typeIerror_array[m, :] = typeIerror
                 power_array[m, :] = power
                 nTreatmentArm_array[m] = N_t
-                cost_array[m] = (1 - power[len(power) // 2] - 0.005 * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
+                cost_array[m] = (1 - power[len(power) // 2] - weight * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
 
             else:
                 typeIerror_array = typeIerror
                 power_array = power
                 nTreatmentArm_array = N_t
-                cost_array = (1 - power[len(power) // 2] - 0.005 * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
+                cost_array = (1 - power[len(power) // 2] - weight * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*(0.77 - min(power)) if min(power) < 0.77 else 0))*100
 
     return typeIerror_array, power_array, nTreatmentArm_array, cost_array
