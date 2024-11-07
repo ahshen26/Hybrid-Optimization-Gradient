@@ -478,7 +478,7 @@ Simulation = function (dataset,
   dataset$RWD = 1
   
   # Fit cox model on the registry data
-  coxModel = coxph(Surv (STIME, STATUS) ~ AGE + I (EE == 'DEF') + DISDUR + FVC + TOTAL + exp (SLOPE) + BMI, x = TRUE, data = dataset, method = "breslow")
+  coxModel = coxph(Surv (STIME, STATUS) ~ 1, x = TRUE, data = dataset, method = "breslow")
   time = basehaz(coxModel, centered = FALSE)$time
   cumulativeBaselineHazard = data.frame(CH = basehaz(coxModel, centered = FALSE)$hazard, Time = time)
   baselineSurvival = data.frame(Prob = c(1, exp(-cumulativeBaselineHazard$CH)), Time = c(0, time))
