@@ -261,10 +261,10 @@ for i in range(1,5):
     
     #. delta and alphaEQ are the equivalence boundary and the significance level of the equivalence test
     #. if the absolute value of Z2 is lower than theta, we borrow. Otherwise, we do not borrow
-    theta1 = optimalDesign[[1]][2]/sigma_Z2 - qnorm(1-alphaEQ/2)
-    theta2 = optimalDesign[[2]][2]/sigma_Z2 - qnorm(1-alphaEQ/2)
-    theta3 = optimalDesign[[3]][2]/sigma_Z2 - qnorm(1-alphaEQ/2)
-    theta4 = optimalDesign[[4]][2]/sigma_Z2 - qnorm(1-alphaEQ/2)
+    theta1 = optimalDesign[[1]]/sigma_Z2 - qnorm(1-alphaEQ/2)
+    theta2 = optimalDesign[[2]]/sigma_Z2 - qnorm(1-alphaEQ/2)
+    theta3 = optimalDesign[[3]]/sigma_Z2 - qnorm(1-alphaEQ/2)
+    theta4 = optimalDesign[[4]]/sigma_Z2 - qnorm(1-alphaEQ/2)
     
     borrow1 = abs (Z2/sigma_Z2) <= theta1
     borrow2 = abs (Z2/sigma_Z2) <= theta2
@@ -281,7 +281,7 @@ for i in range(1,5):
     ### Common cutoff value (Approach 2) ###
     
     cutoffValue <- uniroot(function(cutoffValue){
-      standardized_cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[2]][2], alphaEQ)[1] - alpha_p # standardize
+      standardized_cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[2]], alphaEQ)[1] - alpha_p # standardize
     },lower = -10, upper = 10, tol = 1e-8, maxiter = 1e4)$root
     
     ### Split type I error (Approach 3) ###
@@ -293,8 +293,8 @@ for i in range(1,5):
     
     #. When cutoff value equals infinity, that is, we always reject null, the followings are the borrowing probability and non-borrowing probability
     #. We can not split a proportion of type I error that is higher than the borrowing probability to borrowing case. Vice versa
-    max_value_nonborrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[2]
-    max_value_borrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[3]
+    max_value_nonborrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[2]
+    max_value_borrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[3]
     
     #. Proportion of type I error split to non-borrowing cases and borrowing cases 
     typeIerror_borrowing = alpha_p*(v)
@@ -306,32 +306,28 @@ for i in range(1,5):
       
       typeIerror_borrowing = typeIerror_borrowing + typeIerror_left
       cutoffValue_borrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[3] - (alpha_p - max_value_nonborrowing)
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[3] - (alpha_p - max_value_nonborrowing)
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
-    }
-    #. If we split too much to borrowing cases:
-    else if (typeIerror_borrowing > max_value_borrowing) {
+    } else if (typeIerror_borrowing > max_value_borrowing) {#. If we split too much to borrowing cases:
       cutoffValue_borrowing = 0
       
       cutoffValue_nonborrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[2] - (alpha_p - max_value_borrowing)
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[2] - (alpha_p - max_value_borrowing)
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
-    }
-    else {
+    } else {
       cutoffValue_borrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[3] - typeIerror_borrowing
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[3] - typeIerror_borrowing
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
       
       cutoffValue_nonborrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[2] - typeIerror_nonborrowing
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[2] - typeIerror_nonborrowing
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
     }
     ############################## New ############################
-    if (cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[2] > alpha_p) { #code seems counterintuitive, but this is because floating error
+    if (cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[4]], alphaEQ)[2] > alpha_p) { #code seems counterintuitive, but this is because floating error
       cutoffValue_new = Inf
-    }
-    else {
-      cutoffValue_new = uniroot(function(cutoffValue){cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[3] - (alpha_p - cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, Z2, -w*Z2, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[4]][2], alphaEQ)[2])},
+    } else {
+      cutoffValue_new = uniroot(function(cutoffValue){cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[4]], alphaEQ)[3] - (alpha_p - cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, Z2, -w*Z2, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[4]], alphaEQ)[2])},
                                 lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
     }
     
@@ -347,8 +343,7 @@ for i in range(1,5):
     # Update alpha
     if(deriv > 0){
       alphahat <- 1
-    }
-    else {
+    } else {
       alphahat <- uniroot(function(alpha){
         logML(Z1, Z4, sigma_Z1, sigma_Z4, alpha, sig0 = 1e2, mu0 = 0)[2]
       },lower = 0,upper = 1,tol = 1e-8, maxiter = 1e4)$root
@@ -429,7 +424,10 @@ for i in range(1,5):
     ))
   }
   
-  pBorrowing <- sum(res$borrow)/nrow(res)
+  pBorrowing1 <- sum(res$borrow1)/nrow(res)
+  pBorrowing2 <- sum(res$borrow2)/nrow(res)
+  pBorrowing3 <- sum(res$borrow3)/nrow(res)
+  pBorrowing4 <- sum(res$borrow4)/nrow(res)
   type1Error = (sum (res$Z1/sqrt(res$var_Z1) < qnorm(alpha_p/2)) + sum (res$Z1/sqrt(res$var_Z1) > qnorm(1 - alpha_p/2))) / nrow(res)
   type1Error_normal = (sum (ifelse(res$borrow1, res$Z3, res$Z1)/res$sigma_W < qnorm(alpha_p/2)) + sum (ifelse(res$borrow1, res$Z3, res$Z1)/res$sigma_W > qnorm(1 - alpha_p/2)))/ nrow(res)
   type1Error_c = (sum(ifelse(res$borrow2, res$Z3/res$sigma_Z3, res$Z1/res$sigma_Z1) < -res$cutoffValue) + sum(ifelse(res$borrow2, res$Z3/res$sigma_Z3, res$Z1/res$sigma_Z1) > res$cutoffValue))/nrow(res)
@@ -440,17 +438,18 @@ for i in range(1,5):
   type1Error_b3 = (sum (res$estimator3/res$estimator.sd3 < qnorm(alpha_p/2)) + sum (res$estimator3/res$estimator.sd3 > qnorm(1 - alpha_p/2))) / nrow(res)
   
   return (list(res = res,
-               pBorrowing = pBorrowing,
                type1Error = type1Error,
-               type1Error_n = type1Error_n,
                type1Error_normal = type1Error_normal,
-               type1Error_s = type1Error_s,
+               pBorrowing1 = pBorrowing1,
                type1Error_c = type1Error_c,
+               pBorrowing2 = pBorrowing2,
+               type1Error_s = type1Error_s,
+               pBorrowing3 = pBorrowing3,
+               type1Error_new = type1Error_new,
+               pBorrowing4 = pBorrowing4,
                type1Error_b = type1Error_b,
                type1Error_b2 = type1Error_b2,
-               type1Error_b3 = type1Error_b3,
-               type1Error_new = type1Error_new
-               
+               type1Error_b3 = type1Error_b3
   ))
 }
 
@@ -627,9 +626,9 @@ library("survival")
 library("reticulate")
 D <- read.xlsx ("data_rwe.xlsx")
 #. Eligible population:
-Criteria <- list ("DISDUR <= 36", 
-                  "AGE >= 18", 
-                  "AGE <= 85", 
+Criteria <- list ("DISDUR <= 36",
+                  "AGE >= 18",
+                  "AGE <= 85",
                   "FVC >= 70")
 
 #. Function for PS matching:
@@ -641,15 +640,15 @@ logHR_trt_control = as.numeric(args[1])
 logHR_control_RWD = as.numeric(args[2])
 iter = as.numeric(args[3])
 
-data = Simulation(dataset=D, 
-                  HR_trt_control = exp(logHR_trt_control), 
-                  HR_control_RWD = exp(logHR_control_RWD), 
-                  ratio=1, 
-                  criteria=Criteria, 
+data = Simulation(dataset=D,
+                  HR_trt_control = exp(logHR_trt_control),
+                  HR_control_RWD = exp(logHR_control_RWD),
+                  ratio=1,
+                  criteria=Criteria,
                   form=form,
                   nsim = 500,
                   seed = iter)
-res = inference(dataset = data, alpha_p = 0.05, delta = 0.3, alphaEQ = 0.2)                  
-                 
+res = inference(dataset = data, alpha_p = 0.05, delta = 0.3, alphaEQ = 0.2)
+
 fileName = paste0 ("Results_New_noZ2_tian/Results_", logHR_trt_control, "_", logHR_control_RWD, "_", iter, ".Rds")
 saveRDS (res, fileName)
