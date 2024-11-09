@@ -181,6 +181,7 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
   
   res = c()
   for (i in 1:nrow(dataset)) {
+    print(i)
     dataentry = dataset[i,]
     
     w = dataentry$w
