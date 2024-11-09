@@ -261,10 +261,39 @@ for i in range(1,5):
     
     #. delta and alphaEQ are the equivalence boundary and the significance level of the equivalence test
     #. if the absolute value of Z2 is lower than theta, we borrow. Otherwise, we do not borrow
-    theta1 = optimalDesign[[1]]/sigma_Z2 - qnorm(1-alphaEQ/2)
-    theta2 = optimalDesign[[2]]/sigma_Z2 - qnorm(1-alphaEQ/2)
-    theta3 = optimalDesign[[3]]/sigma_Z2 - qnorm(1-alphaEQ/2)
-    theta4 = optimalDesign[[4]]/sigma_Z2 - qnorm(1-alphaEQ/2)
+    if (optimalDesign[[1]][1]/sigma_Z2 - qnorm(1-alphaEQ/2) < 0) {
+      theta1 = 0
+      EQ_margin1 = qnorm(1-alphaEQ/2)*sigma_Z2
+    } else {
+      theta1 = as.numeric(optimalDesign[[1]][1]/sigma_Z2 - qnorm(1-alphaEQ/2))
+      EQ_margin1 = optimalDesign[[1]][1]
+    }
+    
+    if (optimalDesign[[2]][1]/sigma_Z2 - qnorm(1-alphaEQ/2) < 0) {
+      theta2 = 0
+      EQ_margin2 = qnorm(1-alphaEQ/2)*sigma_Z2
+    } else {
+      theta2 = optimalDesign[[2]][1]/sigma_Z2 - qnorm(1-alphaEQ/2)
+      EQ_margin2 = optimalDesign[[2]][1]
+    }
+    
+    if (optimalDesign[[3]][1]/sigma_Z2 - qnorm(1-alphaEQ/2) < 0) {
+      theta3 = 0
+      EQ_margin3 = qnorm(1-alphaEQ/2)*sigma_Z2
+      v = optimalDesign[[3]][2]
+    } else {
+      theta3 = optimalDesign[[3]][1]/sigma_Z2 - qnorm(1-alphaEQ/2)
+      EQ_margin3 = optimalDesign[[3]][1]
+      v = optimalDesign[[3]][2]
+    }
+    
+    if (optimalDesign[[4]][1]/sigma_Z2 - qnorm(1-alphaEQ/2) < 0) {
+      theta4 = 0
+      EQ_margin4 = qnorm(1-alphaEQ/2)*sigma_Z2
+    } else {
+      theta4 = optimalDesign[[4]][1]/sigma_Z2 - qnorm(1-alphaEQ/2)
+      EQ_margin4 = optimalDesign[[4]][1]
+    }
     
     borrow1 = abs (Z2/sigma_Z2) <= theta1
     borrow2 = abs (Z2/sigma_Z2) <= theta2
@@ -281,20 +310,19 @@ for i in range(1,5):
     ### Common cutoff value (Approach 2) ###
     
     cutoffValue <- uniroot(function(cutoffValue){
-      standardized_cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[2]], alphaEQ)[1] - alpha_p # standardize
+      standardized_cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin2, alphaEQ)[1] - alpha_p # standardize
     },lower = -10, upper = 10, tol = 1e-8, maxiter = 1e4)$root
     
     ### Split type I error (Approach 3) ###
     
     #. v is an array of proportion split to the non-borrowing cases 
-    v = optimalDesign[[3]][2]
     lower = -1e4
     upper = 1e4
     
     #. When cutoff value equals infinity, that is, we always reject null, the followings are the borrowing probability and non-borrowing probability
     #. We can not split a proportion of type I error that is higher than the borrowing probability to borrowing case. Vice versa
-    max_value_nonborrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[2]
-    max_value_borrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[3]
+    max_value_nonborrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[2]
+    max_value_borrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[3]
     
     #. Proportion of type I error split to non-borrowing cases and borrowing cases 
     typeIerror_borrowing = alpha_p*(v)
@@ -306,28 +334,28 @@ for i in range(1,5):
       
       typeIerror_borrowing = typeIerror_borrowing + typeIerror_left
       cutoffValue_borrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[3] - (alpha_p - max_value_nonborrowing)
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[3] - (alpha_p - max_value_nonborrowing)
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
     } else if (typeIerror_borrowing > max_value_borrowing) {#. If we split too much to borrowing cases:
       cutoffValue_borrowing = 0
       
       cutoffValue_nonborrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[2] - (alpha_p - max_value_borrowing)
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[2] - (alpha_p - max_value_borrowing)
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
     } else {
       cutoffValue_borrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[3] - typeIerror_borrowing
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[3] - typeIerror_borrowing
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
       
       cutoffValue_nonborrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][1], alphaEQ)[2] - typeIerror_nonborrowing
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[2] - typeIerror_nonborrowing
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
     }
     ############################## New ############################
-    if (cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[4]], alphaEQ)[2] > alpha_p) { #code seems counterintuitive, but this is because floating error
+    if (cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin4, alphaEQ)[2] > alpha_p) { #code seems counterintuitive, but this is because floating error
       cutoffValue_new = Inf
     } else {
-      cutoffValue_new = uniroot(function(cutoffValue){cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[4]], alphaEQ)[3] - (alpha_p - cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, Z2, -w*Z2, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[4]], alphaEQ)[2])},
+      cutoffValue_new = uniroot(function(cutoffValue){cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin4, alphaEQ)[3] - (alpha_p - cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, Z2, -w*Z2, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin4, alphaEQ)[2])},
                                 lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
     }
     
