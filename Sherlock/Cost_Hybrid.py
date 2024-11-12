@@ -4,7 +4,7 @@ from probFinder import func_getProb
 from scipy.stats import norm
 from scipy.optimize import root_scalar
 
-def fun_Power(input, weight, N, q, effectSize, bias, x1_var, x2_var, x3_var, cov_Z1Z2, alpha, alpha_EQ, calibration):
+def fun_Power(input, weight, effectSize, bias, x1_var, x2_var, x3_var, cov_Z1Z2, alpha, alpha_EQ, calibration):
     dimension = len(input.shape)
 
     if dimension == 3:
@@ -52,9 +52,6 @@ def fun_Power(input, weight, N, q, effectSize, bias, x1_var, x2_var, x3_var, cov
                 EQ_margin = input[1]  # 0.3
                 if calibration == 3:
                     p = input[2]
-                    
-            N_t = np.round(N * r)
-            r = N_t / N
 
             w = cov_Z1Z2/x2_var
             x1_mean = effectSize

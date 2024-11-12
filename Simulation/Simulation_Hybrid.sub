@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+#SBATCH --job-name=Simulation_cox    ## Name of the job.
+#SBATCH --time=2:00:00                                                          ## Time limit
+#SBATCH --ntasks=1                                                              ## Number of tasks to launch
+#SBATCH --cpus-per-task=1                                                       ## Number of cores the job needs
+#SBATCH --mem-per-cpu=1G
+#SBATCH --partition=normal
+#SBATCH --output=Simulation_cox.out ## Name of the job.
+                    
+ml R/4.2.0
+Rscript Simulation_Sherlock.R $1 $2 $3

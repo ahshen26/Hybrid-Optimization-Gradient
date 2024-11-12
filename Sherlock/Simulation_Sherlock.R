@@ -603,7 +603,7 @@ data = Simulation(dataset=D,
                   form=form,
                   nsim = 500,
                   seed = iter)
-res = inference(dataset = data, alpha_p = 0.05, delta = 0.2869, alphaEQ = 0.2)                  
+res = inference(dataset = data, alpha_p = 0.05, delta = 0.3, alphaEQ = 0.2)                  
                  
 fileName = paste0 ("Results_New_noZ2_tian/Results_", logHR_trt_control, "_", logHR_control_RWD, "_", iter, ".Rds")
 saveRDS (res, fileName)

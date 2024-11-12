@@ -181,7 +181,6 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
   
   res = c()
   for (i in 1:nrow(dataset)) {
-    print(i)
     dataentry = dataset[i,]
     
     w = dataentry$w
@@ -217,84 +216,41 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
     py$effectSize = Z1
     py$alpha = alpha_p
     py$alpha_EQ = alphaEQ
-    
-    required_packages <- c("numpy", "pandas", "scipy", "functools")
-    
-    for (pkg in required_packages) {
-      if (!py_module_available(pkg)) {
-        py_install(pkg)
-      }
-    }
-    
     py_run_string("
-import numpy as np
-import pandas as pd
-import os
-import Cost_Hybrid
-from scipy.optimize import dual_annealing
-from functools import partial
+    import numpy as np
+    import pandas as pd
+    import os
+    import Cost_Hybrid
+    from scipy.optimize import dual_annealing
+    from functools import partial
     
-bias = 0
-weight = 0
-r = 0.5
-N = 200
-q = 1
+    bias = 0
+    weight = 0
     
-def extract_cost(input, weight, N, q, effectSize, bias, x1_var, x2_var, x3_var, cov_Z1Z2, alpha, alpha_EQ, calibration):
-  # Call the original objective function
-  input_with_fixed = np.insert(input, 0, r)
-  _, _, _, _, _, cost = Cost_Hybrid.fun_Power(input_with_fixed, weight, N, q, effectSize, bias, x1_var, x2_var, x3_var, cov_Z1Z2, alpha, alpha_EQ, calibration)
-  return cost
-
-optimalDesign = []
-for i in range(1,5):
-  if i == 3:
-    bounds = [(0.1, 0.5),(0.1, 0.9)]
-    x0 = np.array([0.4, 0.1])
-  else: 
-    bounds = [(0.1, 0.5)]
-    x0 = np.array([0.4])
-  cost_function = partial(extract_cost, weight=weight, N = N, q = q, effectSize=effectSize, bias=bias, x1_var = x1_var, x2_var = x2_var, x3_var = x3_var, cov_Z1Z2 = cov_Z1Z2, alpha=alpha, alpha_EQ=alpha_EQ, calibration=i)
-  fitted_results = dual_annealing(cost_function, bounds)
-  optimalDesign.append(fitted_results.x)")
+    def extract_cost(input, weight, effectSize, bias, x1_var, x2_var, x3_var, cov_Z1Z2, alpha, alpha_EQ, calibration):
+      # Call the original objective function
+      _, _, _, _, cost = Cost_Hybrid.fun_Power(input, weight, effectSize, bias, x1_var, x2_var, x3_var, cov_Z1Z2, alpha, alpha_EQ, calibration)
+    return cost
     
+    optimalDesign = []
+    for i in range(1,5):
+      if i == 3:
+        bounds = [(0.5, 0.5), (0.1, 0.5),(0.1, 0.9)]
+        x0 = np.array([0.5, 0.4, 0.1])
+      else: 
+        bounds = [(0.5, 0.5), (0.1, 0.5)]
+        x0 = np.array([0.5, 0.4])
+      cost_function = partial(extract_cost, weight=weight, effectSize=effectSize, bias=bias, x1_var = x1_var, x2_var = x2_var, x3_var = x3_var, cov_Z1Z2 = cov_Z1Z2, alpha=alpha, alpha_EQ=alpha_EQ, calibration=i)
+      fitted_results = dual_annealing(cost_function, bounds)
+      optimalDesign.append(fitted_results.x)")
     optimalDesign = py$optimalDesign
     
     #. delta and alphaEQ are the equivalence boundary and the significance level of the equivalence test
     #. if the absolute value of Z2 is lower than theta, we borrow. Otherwise, we do not borrow
-    if (optimalDesign[[1]][1]/sigma_Z2 - qnorm(1-alphaEQ/2) < 0) {
-      theta1 = 0
-      EQ_margin1 = qnorm(1-alphaEQ/2)*sigma_Z2
-    } else {
-      theta1 = as.numeric(optimalDesign[[1]][1]/sigma_Z2 - qnorm(1-alphaEQ/2))
-      EQ_margin1 = optimalDesign[[1]][1]
-    }
-    
-    if (optimalDesign[[2]][1]/sigma_Z2 - qnorm(1-alphaEQ/2) < 0) {
-      theta2 = 0
-      EQ_margin2 = qnorm(1-alphaEQ/2)*sigma_Z2
-    } else {
-      theta2 = optimalDesign[[2]][1]/sigma_Z2 - qnorm(1-alphaEQ/2)
-      EQ_margin2 = optimalDesign[[2]][1]
-    }
-    
-    if (optimalDesign[[3]][1]/sigma_Z2 - qnorm(1-alphaEQ/2) < 0) {
-      theta3 = 0
-      EQ_margin3 = qnorm(1-alphaEQ/2)*sigma_Z2
-      v = optimalDesign[[3]][2]
-    } else {
-      theta3 = optimalDesign[[3]][1]/sigma_Z2 - qnorm(1-alphaEQ/2)
-      EQ_margin3 = optimalDesign[[3]][1]
-      v = optimalDesign[[3]][2]
-    }
-    
-    if (optimalDesign[[4]][1]/sigma_Z2 - qnorm(1-alphaEQ/2) < 0) {
-      theta4 = 0
-      EQ_margin4 = qnorm(1-alphaEQ/2)*sigma_Z2
-    } else {
-      theta4 = optimalDesign[[4]][1]/sigma_Z2 - qnorm(1-alphaEQ/2)
-      EQ_margin4 = optimalDesign[[4]][1]
-    }
+    theta1 = optimalDesign[[1]][2]/sigma_Z2 - qnorm(1-alphaEQ/2)
+    theta2 = optimalDesign[[2]][2]/sigma_Z2 - qnorm(1-alphaEQ/2)
+    theta3 = optimalDesign[[3]][2]/sigma_Z2 - qnorm(1-alphaEQ/2)
+    theta4 = optimalDesign[[4]][2]/sigma_Z2 - qnorm(1-alphaEQ/2)
     
     borrow1 = abs (Z2/sigma_Z2) <= theta1
     borrow2 = abs (Z2/sigma_Z2) <= theta2
@@ -311,19 +267,20 @@ for i in range(1,5):
     ### Common cutoff value (Approach 2) ###
     
     cutoffValue <- uniroot(function(cutoffValue){
-      standardized_cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin2, alphaEQ)[1] - alpha_p # standardize
+      standardized_cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[2]][2], alphaEQ)[1] - alpha_p # standardize
     },lower = -10, upper = 10, tol = 1e-8, maxiter = 1e4)$root
     
     ### Split type I error (Approach 3) ###
     
     #. v is an array of proportion split to the non-borrowing cases 
+    v = optimalDesign[[3]][2]
     lower = -1e4
     upper = 1e4
     
     #. When cutoff value equals infinity, that is, we always reject null, the followings are the borrowing probability and non-borrowing probability
     #. We can not split a proportion of type I error that is higher than the borrowing probability to borrowing case. Vice versa
-    max_value_nonborrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[2]
-    max_value_borrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[3]
+    max_value_nonborrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[2]
+    max_value_borrowing = cutoff(0, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[3]
     
     #. Proportion of type I error split to non-borrowing cases and borrowing cases 
     typeIerror_borrowing = alpha_p*(v)
@@ -335,28 +292,32 @@ for i in range(1,5):
       
       typeIerror_borrowing = typeIerror_borrowing + typeIerror_left
       cutoffValue_borrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[3] - (alpha_p - max_value_nonborrowing)
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[3] - (alpha_p - max_value_nonborrowing)
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
-    } else if (typeIerror_borrowing > max_value_borrowing) {#. If we split too much to borrowing cases:
+    }
+    #. If we split too much to borrowing cases:
+    else if (typeIerror_borrowing > max_value_borrowing) {
       cutoffValue_borrowing = 0
       
       cutoffValue_nonborrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[2] - (alpha_p - max_value_borrowing)
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[2] - (alpha_p - max_value_borrowing)
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
-    } else {
+    }
+    else {
       cutoffValue_borrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[3] - typeIerror_borrowing
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[3] - typeIerror_borrowing
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
       
       cutoffValue_nonborrowing = uniroot(function(cutoffValue){
-        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin3, alphaEQ)[2] - typeIerror_nonborrowing
+        cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[2] - typeIerror_nonborrowing
       },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
     }
     ############################## New ############################
-    if (cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin4, alphaEQ)[2] > alpha_p) { #code seems counterintuitive, but this is because floating error
+    if (cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[2] > alpha_p) { #code seems counterintuitive, but this is because floating error
       cutoffValue_new = Inf
-    } else {
-      cutoffValue_new = uniroot(function(cutoffValue){cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin4, alphaEQ)[3] - (alpha_p - cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, Z2, -w*Z2, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), EQ_margin4, alphaEQ)[2])},
+    }
+    else {
+      cutoffValue_new = uniroot(function(cutoffValue){cutoff(cutoffValue, w, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[3]][2], alphaEQ)[3] - (alpha_p - cutoff(qnorm (1-alpha_p/2)*sigma_Z1, w, 0, Z2, -w*Z2, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), optimalDesign[[4]][2], alphaEQ)[2])},
                                 lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
     }
     
@@ -372,7 +333,8 @@ for i in range(1,5):
     # Update alpha
     if(deriv > 0){
       alphahat <- 1
-    } else {
+    }
+    else {
       alphahat <- uniroot(function(alpha){
         logML(Z1, Z4, sigma_Z1, sigma_Z4, alpha, sig0 = 1e2, mu0 = 0)[2]
       },lower = 0,upper = 1,tol = 1e-8, maxiter = 1e4)$root
@@ -453,10 +415,7 @@ for i in range(1,5):
     ))
   }
   
-  pBorrowing1 <- sum(res$borrow1)/nrow(res)
-  pBorrowing2 <- sum(res$borrow2)/nrow(res)
-  pBorrowing3 <- sum(res$borrow3)/nrow(res)
-  pBorrowing4 <- sum(res$borrow4)/nrow(res)
+  pBorrowing <- sum(res$borrow)/nrow(res)
   type1Error = (sum (res$Z1/sqrt(res$var_Z1) < qnorm(alpha_p/2)) + sum (res$Z1/sqrt(res$var_Z1) > qnorm(1 - alpha_p/2))) / nrow(res)
   type1Error_normal = (sum (ifelse(res$borrow1, res$Z3, res$Z1)/res$sigma_W < qnorm(alpha_p/2)) + sum (ifelse(res$borrow1, res$Z3, res$Z1)/res$sigma_W > qnorm(1 - alpha_p/2)))/ nrow(res)
   type1Error_c = (sum(ifelse(res$borrow2, res$Z3/res$sigma_Z3, res$Z1/res$sigma_Z1) < -res$cutoffValue) + sum(ifelse(res$borrow2, res$Z3/res$sigma_Z3, res$Z1/res$sigma_Z1) > res$cutoffValue))/nrow(res)
@@ -467,18 +426,17 @@ for i in range(1,5):
   type1Error_b3 = (sum (res$estimator3/res$estimator.sd3 < qnorm(alpha_p/2)) + sum (res$estimator3/res$estimator.sd3 > qnorm(1 - alpha_p/2))) / nrow(res)
   
   return (list(res = res,
+               pBorrowing = pBorrowing,
                type1Error = type1Error,
+               type1Error_n = type1Error_n,
                type1Error_normal = type1Error_normal,
-               pBorrowing1 = pBorrowing1,
-               type1Error_c = type1Error_c,
-               pBorrowing2 = pBorrowing2,
                type1Error_s = type1Error_s,
-               pBorrowing3 = pBorrowing3,
-               type1Error_new = type1Error_new,
-               pBorrowing4 = pBorrowing4,
+               type1Error_c = type1Error_c,
                type1Error_b = type1Error_b,
                type1Error_b2 = type1Error_b2,
-               type1Error_b3 = type1Error_b3
+               type1Error_b3 = type1Error_b3,
+               type1Error_new = type1Error_new
+               
   ))
 }
 
@@ -506,7 +464,7 @@ Simulation = function (dataset,
   dataset$RWD = 1
   
   # Fit cox model on the registry data
-  coxModel = coxph(Surv (STIME, STATUS) ~ 1, x = TRUE, data = dataset, method = "breslow")
+  coxModel = coxph(Surv (STIME, STATUS) ~ AGE + I (EE == 'DEF') + DISDUR + FVC + TOTAL + exp (SLOPE) + BMI, x = TRUE, data = dataset, method = "breslow")
   time = basehaz(coxModel, centered = FALSE)$time
   cumulativeBaselineHazard = data.frame(CH = basehaz(coxModel, centered = FALSE)$hazard, Time = time)
   baselineSurvival = data.frame(Prob = c(1, exp(-cumulativeBaselineHazard$CH)), Time = c(0, time))
@@ -655,9 +613,9 @@ library("survival")
 library("reticulate")
 D <- read.xlsx ("data_rwe.xlsx")
 #. Eligible population:
-Criteria <- list ("DISDUR <= 36",
-                  "AGE >= 18",
-                  "AGE <= 85",
+Criteria <- list ("DISDUR <= 36", 
+                  "AGE >= 18", 
+                  "AGE <= 85", 
                   "FVC >= 70")
 
 #. Function for PS matching:
@@ -669,15 +627,15 @@ logHR_trt_control = as.numeric(args[1])
 logHR_control_RWD = as.numeric(args[2])
 iter = as.numeric(args[3])
 
-data = Simulation(dataset=D,
-                  HR_trt_control = exp(logHR_trt_control),
-                  HR_control_RWD = exp(logHR_control_RWD),
-                  ratio=1,
-                  criteria=Criteria,
+data = Simulation(dataset=D, 
+                  HR_trt_control = exp(logHR_trt_control), 
+                  HR_control_RWD = exp(logHR_control_RWD), 
+                  ratio=1, 
+                  criteria=Criteria, 
                   form=form,
                   nsim = 500,
                   seed = iter)
-res = inference(dataset = data, alpha_p = 0.05, delta = 0.3, alphaEQ = 0.2)
-
+res = inference(dataset = data, alpha_p = 0.05, delta = 0.3, alphaEQ = 0.2)                  
+                 
 fileName = paste0 ("Results_New_noZ2_tian/Results_", logHR_trt_control, "_", logHR_control_RWD, "_", iter, ".Rds")
 saveRDS (res, fileName)
