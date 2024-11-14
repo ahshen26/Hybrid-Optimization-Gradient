@@ -115,5 +115,5 @@ for weight in np.array([0,0.005]):
                       [f'TypeIError_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.05)]
             DF_result = pd.DataFrame(all_combined_data, columns=columns)
         DF = pd.concat([DF, DF_result], ignore_index=True)
-DF.to_csv(os.path.join(os.getcwd(), 'Optimal_design.csv'), index=False)
+DF.to_csv(os.path.join(os.getcwd(), 'Optimal_design_powerGain.csv'), index=False)
 
