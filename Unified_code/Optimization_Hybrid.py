@@ -91,28 +91,30 @@ for weight in np.array([0,0.005]):
         result_DA = Cost_Hybrid.fun_Power(fitted_results.x, weight = weight, N=N, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=i)
 
         if i == 3:
-            combined_data_PSO = [weight, i, round(200*pos_PSO[0], 0)/200, round(200*pos_PSO[0], 0), pos_PSO[1], pos_PSO[2], cost_PSO, result_PSO[2], result_PSO[3], result_PSO[4], result_PSO[5]] + list(result_PSO[1]) + list(result_PSO[0])
-            combined_data_CSO = [weight, i, round(200*fittedModel.solution[0], 0)/200, round(200*fittedModel.solution[0], 0), fittedModel.solution[1], fittedModel.solution[2], fittedModel.target.objectives[0], result_CSO[2], result_CSO[3], result_CSO[4], result_CSO[5]] + list(result_CSO[1]) + list(result_CSO[0])
-            combined_data_CSOMA = [weight, i, round(200*pos_CSOMA[0], 0)/200, round(200*pos_CSOMA[0], 0), pos_CSOMA[1], pos_CSOMA[2], np.float64(cost_CSOMA), result_CSOMA[2], result_CSOMA[3], result_CSOMA[4], result_CSOMA[5]] + list(result_CSOMA[1]) + list(result_CSOMA[0])
-            combined_data_DA = [weight, i, round(200*fitted_results.x[0], 0)/200, round(200*fitted_results.x[0], 0), fitted_results.x[1], fitted_results.x[2], fitted_results.fun, result_DA[2], result_DA[3], result_DA[4], result_DA[5]] + list(result_DA[1]) + list(result_DA[0])
+            combined_data_PSO = [weight, i, round(200*pos_PSO[0], 0)/200, round(200*pos_PSO[0], 0), pos_PSO[1], pos_PSO[2], cost_PSO, result_PSO[2], result_PSO[4], result_PSO[5]] + list(result_PSO[1]) + list(result_PSO[0]) + list(result_PSO[3])
+            combined_data_CSO = [weight, i, round(200*fittedModel.solution[0], 0)/200, round(200*fittedModel.solution[0], 0), fittedModel.solution[1], fittedModel.solution[2], fittedModel.target.objectives[0], result_CSO[2], result_CSO[4], result_CSO[5]] + list(result_CSO[1]) + list(result_CSO[0]) + list(result_CSO[3])
+            combined_data_CSOMA = [weight, i, round(200*pos_CSOMA[0], 0)/200, round(200*pos_CSOMA[0], 0), pos_CSOMA[1], pos_CSOMA[2], np.float64(cost_CSOMA), result_CSOMA[2], result_CSOMA[4], result_CSOMA[5]] + list(result_CSOMA[1]) + list(result_CSOMA[0]) + list(result_CSOMA[3])
+            combined_data_DA = [weight, i, round(200*fitted_results.x[0], 0)/200, round(200*fitted_results.x[0], 0), fitted_results.x[1], fitted_results.x[2], fitted_results.fun, result_DA[2], result_DA[4], result_DA[5]] + list(result_DA[1]) + list(result_DA[0])+ list(result_DA[3])
 
             all_combined_data = [combined_data_PSO, combined_data_CSO, combined_data_CSOMA, combined_data_DA]
             all_combined_data = [[round(num, 4) for num in sublist] for sublist in all_combined_data]
-            columns = ["Weight", "Calibration", 'Randomization Ratio', 'N_t', 'Equivalence Margin', "Split Ratio", "Cost", "N_t", "Beta", "Power_Reference","Cost"] + \
+            columns = ["Weight", "Calibration", 'Randomization Ratio', 'N_t', 'Equivalence Margin', "Split Ratio", "Cost", "N_t", "Power_Reference","Cost"] + \
                       [f'Power_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.05)] + \
-                      [f'TypeIError_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.05)]
+                      [f'TypeIError_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.05)] + \
+                      [f'Beta_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.05)]
             DF_result = pd.DataFrame(all_combined_data, columns=columns)
         else:
-            combined_data_PSO = [weight, i, round(200*pos_PSO[0], 0)/200, round(200*pos_PSO[0], 0), pos_PSO[1], 0, cost_PSO, result_PSO[2], result_PSO[3], result_PSO[4], result_PSO[5]] + list(result_PSO[1]) + list(result_PSO[0])
-            combined_data_CSO = [weight, i, round(200*fittedModel.solution[0], 0)/200, round(200*fittedModel.solution[0], 0), fittedModel.solution[1], 0, fittedModel.target.objectives[0], result_CSO[2], result_CSO[3], result_CSO[4], result_CSO[5]] + list(result_CSO[1]) + list(result_CSO[0])
-            combined_data_CSOMA = [weight, i, round(200*pos_CSOMA[0], 0)/200, round(200*pos_CSOMA[0], 0), pos_CSOMA[1], 0, np.float64(cost_CSOMA), result_CSOMA[2], result_CSOMA[3], result_CSOMA[4], result_CSOMA[5]] + list(result_CSOMA[1]) + list(result_CSOMA[0])
-            combined_data_DA = [weight, i, round(200*fitted_results.x[0], 0)/200, round(200*fitted_results.x[0], 0), fitted_results.x[1], 0, fitted_results.fun, result_DA[2], result_DA[3], result_DA[4], result_DA[5]] + list(result_DA[1]) + list(result_DA[0])
+            combined_data_PSO = [weight, i, round(200*pos_PSO[0], 0)/200, round(200*pos_PSO[0], 0), pos_PSO[1], 0, cost_PSO, result_PSO[2], result_PSO[4], result_PSO[5]] + list(result_PSO[1]) + list(result_PSO[0]) + list(result_PSO[3])
+            combined_data_CSO = [weight, i, round(200*fittedModel.solution[0], 0)/200, round(200*fittedModel.solution[0], 0), fittedModel.solution[1], 0, fittedModel.target.objectives[0], result_CSO[2], result_CSO[4], result_CSO[5]] + list(result_CSO[1]) + list(result_CSO[0]) + list(result_CSO[3])
+            combined_data_CSOMA = [weight, i, round(200*pos_CSOMA[0], 0)/200, round(200*pos_CSOMA[0], 0), pos_CSOMA[1], 0, np.float64(cost_CSOMA), result_CSOMA[2], result_CSOMA[4], result_CSOMA[5]] + list(result_CSOMA[1]) + list(result_CSOMA[0]) + list(result_CSOMA[3])
+            combined_data_DA = [weight, i, round(200*fitted_results.x[0], 0)/200, round(200*fitted_results.x[0], 0), fitted_results.x[1], 0, fitted_results.fun, result_DA[2], result_DA[4], result_DA[5]] + list(result_DA[1]) + list(result_DA[0]) + list(result_DA[3])
 
             all_combined_data = [combined_data_PSO, combined_data_CSO, combined_data_CSOMA, combined_data_DA]
             all_combined_data = [[round(num, 4) for num in sublist] for sublist in all_combined_data]
-            columns = ["Weight", "Calibration", 'Randomization Ratio', 'N_t', 'Equivalence Margin', "Split Ratio", "Cost", "N_t", "Beta", "Power_Reference", "Cost"] + \
+            columns = ["Weight", "Calibration", 'Randomization Ratio', 'N_t', 'Equivalence Margin', "Split Ratio", "Cost", "N_t", "Power_Reference", "Cost"] + \
                       [f'Power_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.05)] + \
-                      [f'TypeIError_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.05)]
+                      [f'TypeIError_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.05)] + \
+                      [f'Beta_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.05)]
             DF_result = pd.DataFrame(all_combined_data, columns=columns)
         DF = pd.concat([DF, DF_result], ignore_index=True)
 DF.to_csv(os.path.join(os.getcwd(), 'Optimal_design_powerGain.csv'), index=False)
