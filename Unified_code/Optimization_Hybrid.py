@@ -36,7 +36,7 @@ def calib(N, weight, calibration):
     fitted_results = dual_annealing(cost_function, bounds)
     result_DA = Cost_Hybrid.fun_Power(fitted_results.x, weight=weight, N=N, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=calibration)
     power = result_DA[1][len(result_DA[1]) // 2]
-    return power - 80
+    return power - 0.8
 
 RequiredSampleSize = {}
 for weight in np.array([0,0.005]):
