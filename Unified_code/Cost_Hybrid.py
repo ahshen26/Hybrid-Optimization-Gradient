@@ -135,7 +135,7 @@ def fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, cal
 
             for j in np.arange(-0.6, 0.61, 0.05):
                 if theta == 0:
-                    beta =np.append(beta, 0)
+                    beta = np.append(beta, 0)
                     typeIerror = np.append(typeIerror, norm.cdf(-cutoffValue_no_borr, 0, np.sqrt(x1_var)) + (1 - norm.cdf(cutoffValue_no_borr, 0, np.sqrt(x1_var))))
                     power = np.append(power, norm.cdf(-cutoffValue_no_borr, x1_mean, np.sqrt(x1_var)) + (1 - norm.cdf(cutoffValue_no_borr, x1_mean, np.sqrt(x1_var))))
                 else:
