@@ -8,4 +8,4 @@
 #SBATCH --output=Simulation_cox.out ## Name of the job.
                     
 ml R/4.2.0
-Rscript Simulation_Sherlock.R $1 $2 $3
+Rscript Simulation_Sherlock_UnequalRR.R $1 $2 $3 $4
