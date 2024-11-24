@@ -601,7 +601,7 @@ if (ratio == 0.5) {
 }
 logHR_trt_control = as.numeric(args[2])
 logHR_control_RWD = as.numeric(args[3])
-iter = as.numeric(args[4])
+iter = as.integer(args[4])
 
 data = Simulation(dataset=D, 
                   HR_trt_control = exp(logHR_trt_control), 

@@ -17,8 +17,8 @@ for r in 0.5 0.865;
         		# iteration
         		for n in `seq 1 1 20`;
             			do
-            			# echo $i $j $n
-            			sbatch Simulation_Hybrid.sub $i $j $n
+            			# echo $r $i $j $n
+            			sbatch Simulation_Hybrid.sub $r $i $j $n
             			done
         		done
     		done
