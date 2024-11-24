@@ -182,7 +182,7 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
   res = c()
   for (i in 1:nrow(dataset)) {
     dataentry = dataset[i,]
-    
+
     w = dataentry$w
     
     hr_trt_control = dataentry$hr_trt_control
@@ -371,11 +371,11 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
                                       estimator.sd = estimator.sd,
                                       estimator.sd2 = estimator.sd2,
                                       estimator.sd3 = estimator.sd3,
-                                      n_patients_trt = dataentry$n_patients_trt,
-                                      n_patients_control = dataentry$n_patients_control,
                                       n_events_trt = dataentry$n_events_trt,
                                       n_events_control = dataentry$n_events_control,
-                                      n_events_RWD = dataentry$n_events_RWD
+                                      n_events_RWD = dataentry$n_events_RWD,
+                                      TRTExposure = dataentry$TRTExposure,
+                                      ControlExposure = dataentry$ControlExposure
     ),
     matrix(cutoffValue_nonborrowing, ncol = length(cutoffValue_nonborrowing), dimnames = list(NULL,paste0("cv_nonborrowing_", v))),
     matrix(cutoffValue_borrowing,    ncol = length(cutoffValue_borrowing),    dimnames = list(NULL,paste0("cv_borrowing_", v)))
@@ -451,6 +451,14 @@ Simulation = function (dataset,
   InverseSurvivalFunction <- function(hazardRatio, S) {
     return(-log(S) / hazardRatio)
   }
+  # Sampling the survival time
+  dataset$inverseSampling = runif(nrow(dataset))
+  
+  dataset$STIME = sapply(1:nrow(dataset), function(ii) {
+    InverseSurvivalFunction(BaselineHazardRatio*dataset[ii, "hazardRatioCov"], dataset[ii, "inverseSampling"])
+  })
+  
+  dataset$STATUS = 1
   
   nsample_trt = N*ratio
   nsample_control = N*(1-ratio)
@@ -463,24 +471,29 @@ Simulation = function (dataset,
     trtPatients = sample(enrolledPatients, nsample_trt, replace = FALSE)
     controlPatients = setdiff(enrolledPatients, trtPatients)
     
-    # Treatment allocation
-    dataset[enrolledPatients, "ENROLL"] = 1
-    dataset[trtPatients, "TRT"] = 1
-    dataset[controlPatients, "CONTROL"] = 1
+    trtSet = dataset[trtPatients, ]
+    controlSet = dataset[controlPatients, ]
+    trtSet$TRT = 1
+    trtSet$CONTROL = 0
+    controlSet$TRT = 0
+    controlSet$CONTROL = 1
+    trialSet = rbind(trtSet, controlSet)
+    trialSet$ENROLL <- 1
+    trialSet$RWD <- 0
     
     # Add treatment effect and cohort effect
-    dataset$hazardRatioCov = ifelse(dataset$TRT == 1, HR_trt_control*HR_control_RWD, ifelse(dataset$CONTROL == 1, HR_control_RWD, 1))*dataset$hazardRatioCov
+    trialSet$hazardRatioCov = ifelse(trialSet$TRT == 1, HR_trt_control*HR_control_RWD, HR_control_RWD)*trialSet$hazardRatioCov
     
     # Sampling the survival time
-    dataset$inverseSampling = runif(nrow(dataset))
+    trialSet$inverseSampling = runif(nrow(trialSet))
     
-    dataset$STIME = sapply(1:nrow(dataset), function(ii) {
-      InverseSurvivalFunction(BaselineHazardRatio*dataset[ii, "hazardRatioCov"], dataset[ii, "inverseSampling"])
+    trialSet$STIME = sapply(1:nrow(trialSet), function(ii) {
+      InverseSurvivalFunction(BaselineHazardRatio*trialSet[ii, "hazardRatioCov"], trialSet[ii, "inverseSampling"])
     })
   
-    dataset$STATUS = 1
+    trialSet$STATUS = 1
     
-    trialSet = dataset[enrolledPatients, ]
+    
     registrySet <- dataset[!dataset$ID %in% enrolledPatients, ]
     registrySet <- registrySet[Eligible (criteria = criteria, data = registrySet), ]
     finalSet <- rbind (trialSet, registrySet)
@@ -567,6 +580,7 @@ library("openxlsx")
 library("parallel")
 library("mvtnorm")
 library("survival")
+library("flexsurv")
 D <- read.xlsx ("data_rwe.xlsx")
 #. Eligible population:
 Criteria <- list ("DISDUR <= 36", 
