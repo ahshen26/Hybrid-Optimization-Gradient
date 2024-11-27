@@ -6,7 +6,7 @@
 ########################################################
 
 #Randomization Ratio = 0.5, 0.865
-for r in 0.5 0.865;
+for r in 1 5;
 	do
 	# log hazard ratio between TRT and CONTROL
 	for i in -0.4 0;

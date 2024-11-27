@@ -593,12 +593,10 @@ form <- as.formula (ENROLL ~  AGE + I (EE == 'DEF') + DISDUR + FVC + TOTAL + exp
 
 args= commandArgs(trailingOnly = TRUE)
 
-ratio = as.numeric(args[1])
-if (ratio == 0.5) {
-  delta = 0.2869
-} else {
-  delta = 0.3799
-}
+N = 420
+ratio = 6/7
+delta = 0.2874
+q = as.numeric(args[1])
 logHR_trt_control = as.numeric(args[2])
 logHR_control_RWD = as.numeric(args[3])
 iter = as.integer(args[4])
@@ -606,8 +604,8 @@ iter = as.integer(args[4])
 data = Simulation(dataset=D, 
                   HR_trt_control = exp(logHR_trt_control), 
                   HR_control_RWD = exp(logHR_control_RWD), 
-                  N = 200,
-                  q = 1,
+                  N = N,
+                  q = q,
                   ratio=ratio, 
                   criteria=Criteria, 
                   form=form,
@@ -615,5 +613,5 @@ data = Simulation(dataset=D,
                   seed = iter)
 res = inference(dataset = data, alpha_p = 0.05, delta = delta, alphaEQ = 0.2)                  
 
-fileName = paste0 ("Results_New_noZ2_tian/Results_", logHR_trt_control, "_", logHR_control_RWD, "_", iter, "_", ratio, "_", delta, ".Rds")
+fileName = paste0 ("Results_New_noZ2_tian/Results_", logHR_trt_control, "_", logHR_control_RWD, "_", iter, "_", q, ".Rds")
 saveRDS (res, fileName)

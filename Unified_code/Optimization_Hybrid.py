@@ -27,6 +27,11 @@ def extract_cost(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, 
     _, _, _, _, _, cost = Cost_Hybrid.fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
     return cost
 
+bounds = [(0.1, 0.9), (0.1, 1)]
+cost_function = partial(extract_cost, weight=0, N=420, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
+fitted_results = dual_annealing(cost_function, bounds)
+result_DA = Cost_Hybrid.fun_Power(fitted_results.x, weight=0, N=420, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
+
 def calib(N, weight, calibration):
     if calibration == 3:
         bounds = [(0.1, 0.9), (0.1, 1), (0.1, 0.9)]
@@ -140,3 +145,5 @@ for weight in np.array([0,0.005]):
         DF = pd.concat([DF, DF_result], ignore_index=True)
 DF.to_csv(os.path.join(os.getcwd(), 'Optimal_design_powerGain_calibrated.csv'), index=False)
 
+N = 430
+Cost_Hybrid.fun_Power(np.array([0.875, 0.265]), weight=0, N=N, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
