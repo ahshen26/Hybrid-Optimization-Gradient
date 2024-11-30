@@ -22,15 +22,21 @@ sigma = 1
 alpha = 0.05
 alpha_EQ = 0.2
 
+# def extract_cost(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
+#     # Call the original objective function
+#     _, _, _, _, _, cost = Cost_Hybrid.fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+#     return cost
+
 def extract_cost(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
     # Call the original objective function
-    _, _, _, _, _, cost = Cost_Hybrid.fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+    updated_input = np.array([6/7, input[0]])
+    _, _, _, _, _, cost = Cost_Hybrid.fun_Power(updated_input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
     return cost
 
-bounds = [(0.1, 0.9), (0.1, 1)]
-cost_function = partial(extract_cost, weight=0, N=420, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
+bounds = [(0.1, 1)]
+cost_function = partial(extract_cost, weight=0, N=399, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
 fitted_results = dual_annealing(cost_function, bounds)
-result_DA = Cost_Hybrid.fun_Power(fitted_results.x, weight=0, N=420, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
+result_DA = Cost_Hybrid.fun_Power(np.array([6/7, 0.2637]), weight=0, N=399, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
 
 def calib(N, weight, calibration):
     if calibration == 3:

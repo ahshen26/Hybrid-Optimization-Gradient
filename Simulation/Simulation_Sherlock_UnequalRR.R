@@ -93,7 +93,7 @@ Var_W <- function (Z1, Z2,
   return(var_W)
 }
 
-Matcher.v2 <- function (data){
+Matcher.v2 <- function (data, q){
   
   #. Required vars in data:
   ## PS = Score to be matched on
@@ -108,12 +108,12 @@ Matcher.v2 <- function (data){
   matchMatrix <- abs (outer (enroll_1$PS, enroll_0$PS, "-"))
   
   # Check for too few matches
-  if (nrow(matchMatrix) > ncol(matchMatrix)) {
+  if (nrow(matchMatrix)*q > ncol(matchMatrix)) {
     stop("Too few matches")
   }
   
   # Initialize vectors to store matches and calipers
-  num_matches <- nrow (matchMatrix)
+  num_matches <- nrow (matchMatrix)*q
   match_indices <- matrix (0, nrow = num_matches, ncol = 2)
   match.caliper <- numeric (num_matches)
   
@@ -124,7 +124,7 @@ Matcher.v2 <- function (data){
     match.caliper[i] <<- matchMatrix[min_indices[1], min_indices[2]]
     
     # Set matched row and column to a high value to exclude them
-    matchMatrix[min_indices[1], ] <<- Inf
+    if(sum(match_indices[,1] == min_indices[1]) >= q) {matchMatrix[min_indices[1], ] <<- Inf}
     matchMatrix[, min_indices[2]] <<- Inf
   })
   
@@ -462,7 +462,6 @@ Simulation = function (dataset,
   
   nsample_trt = N*ratio
   nsample_control = N*(1-ratio)
-  nsample_RWD = N*q
   
   res = c()
   for (i in 1:nsim) {
@@ -503,7 +502,7 @@ Simulation = function (dataset,
     finalSet$PS <- fitted (m)
     
     #. Get matches
-    R <- Matcher.v2 (finalSet)
+    R <- Matcher.v2 (finalSet, q)
     
     #. Combined dataset
     data.match <- finalSet[finalSet$ID %in% c (R$MatchID, R$TrialID), ]
@@ -593,9 +592,9 @@ form <- as.formula (ENROLL ~  AGE + I (EE == 'DEF') + DISDUR + FVC + TOTAL + exp
 
 args= commandArgs(trailingOnly = TRUE)
 
-N = 420
+N = 399
 ratio = 6/7
-delta = 0.2874
+delta = 0.2637
 q = as.numeric(args[1])
 logHR_trt_control = as.numeric(args[2])
 logHR_control_RWD = as.numeric(args[3])
