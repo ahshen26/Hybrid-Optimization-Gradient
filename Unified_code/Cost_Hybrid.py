@@ -4,7 +4,7 @@ from probFinder import func_getProb
 from scipy.stats import norm
 from scipy.optimize import root_scalar
 
-def fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
+def fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
     dimension = len(input.shape)
 
     if dimension == 3:
@@ -13,6 +13,7 @@ def fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, cal
         typeIerror_array = np.zeros((n_col, n_row, len(np.arange(-0.6, 0.61, 0.05))))
         power_array = np.zeros((n_col, n_row, len(np.arange(-0.6, 0.61, 0.05))))
         beta_array = np.zeros((n_col, n_row, len(np.arange(-0.6, 0.61, 0.05))))
+        totalN = np.zeros((n_col, n_row))
         nTreatmentArm_array = np.zeros((n_col, n_row))
         power_reference_array = np.zeros((n_col, n_row))
         cost_array = np.zeros((n_col, n_row))
@@ -22,6 +23,7 @@ def fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, cal
         typeIerror_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.05))))
         power_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.05))))
         beta_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.05))))
+        totalN = np.zeros((n_col))
         nTreatmentArm_array = np.zeros((n_col))
         power_reference_array = np.zeros((n_col))
         cost_array = np.zeros((n_col))
@@ -31,6 +33,7 @@ def fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, cal
         typeIerror_array = np.zeros((len(np.arange(-0.6, 0.61, 0.05))))
         power_array = np.zeros((len(np.arange(-0.6, 0.61, 0.05))))
         beta_array = np.zeros((len(np.arange(-0.6, 0.61, 0.05))))
+        totalN = 0
         nTreatmentArm_array = 0
         power_reference_array = 0
         cost_array = 0
@@ -52,6 +55,13 @@ def fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, cal
                 EQ_margin = input[1]  # 0.3
                 if calibration == 3:
                     p = input[2]
+
+            def calculate_sample_size(N):
+                x1_var = sigma ** 2 / (N * r * (1 - r))
+                return norm.cdf(-norm.ppf(1 - alpha / 2)*np.sqrt(x1_var), effectSize, np.sqrt(x1_var)) + (1 - norm.cdf(norm.ppf(1 - alpha / 2)*np.sqrt(x1_var), effectSize, np.sqrt(x1_var))) - 0.8
+
+            sol = root_scalar(calculate_sample_size, bracket=[1, 10000], method='brenth', xtol=1e-12, maxiter=10000)
+            N = np.round(sol.root)
 
             N_t = np.round(N * r)
             r = N_t / N
@@ -148,24 +158,27 @@ def fun_Power(input, weight, N, q, effectSize, bias, sigma, alpha, alpha_EQ, cal
                 typeIerror_array[m, n, :] = typeIerror
                 power_array[m, n, :] = power
                 beta_array[m, n, :] = beta
+                totalN[m, n] = N
                 nTreatmentArm_array[m, n] = N_t
                 power_reference_array[m, n] = power_reference
-                cost_array[m, n] = (-power[len(power) // 2] + power_reference - weight * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*((power_reference - 0.03) - min(power)) if min(power) < (power_reference - 0.03) else 0))*100
+                cost_array[m, n] = (-power[len(power) // 2] - weight * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*((power_reference - 0.03) - min(power)) if min(power) < (power_reference - 0.03) else 0))*100
 
             elif dimension == 2:
                 typeIerror_array[m, :] = typeIerror
                 power_array[m, :] = power
                 beta_array[m, :] = beta
+                totalN[m] = N
                 nTreatmentArm_array[m] = N_t
                 power_reference_array[m] = power_reference
-                cost_array[m] = (-power[len(power) // 2] + power_reference - weight * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*((power_reference - 0.03) - min(power)) if min(power) < (power_reference - 0.03) else 0))*100
+                cost_array[m] = (-power[len(power) // 2] - weight * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*((power_reference - 0.03) - min(power)) if min(power) < (power_reference - 0.03) else 0))*100
 
             else:
                 typeIerror_array = typeIerror
                 power_array = power
                 beta_array = beta
+                totalN = N
                 nTreatmentArm_array = N_t
                 power_reference_array = power_reference
-                cost_array = (-power[len(power) // 2] + power_reference - weight * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*((power_reference - 0.03) - min(power)) if min(power) < (power_reference - 0.03) else 0))*100
+                cost_array = (-power[len(power) // 2] - weight * N_t + (100*(max(typeIerror)-0.07) if max(typeIerror) > 0.07 else 0) + (100*((power_reference - 0.03) - min(power)) if min(power) < (power_reference - 0.03) else 0))*100
 
-    return typeIerror_array, power_array, nTreatmentArm_array, beta_array, power_reference_array, cost_array
+    return typeIerror_array, power_array, totalN, nTreatmentArm_array, beta_array, power_reference_array, cost_array
