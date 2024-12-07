@@ -592,9 +592,9 @@ form <- as.formula (ENROLL ~  AGE + I (EE == 'DEF') + DISDUR + FVC + TOTAL + exp
 
 args= commandArgs(trailingOnly = TRUE)
 
-N = 399
-ratio = 6/7
-delta = 0.2637
+N = 225
+ratio = 2/3
+delta = 0.2833
 q = as.numeric(args[1])
 logHR_trt_control = as.numeric(args[2])
 logHR_control_RWD = as.numeric(args[3])

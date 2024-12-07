@@ -21,10 +21,20 @@ sigma = 1
 alpha = 0.05
 alpha_EQ = 0.2
 
+# def extract_cost(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
+#     # Call the original objective function
+#     _, _, _, _, _, _, cost = Cost_Hybrid.fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+#     return cost
+
 def extract_cost(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
+    updated_input = np.array([2/3, input[0]])
     # Call the original objective function
-    _, _, _, _, _, _, cost = Cost_Hybrid.fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+    _, _, _, _, _, _, cost = Cost_Hybrid.fun_Power(updated_input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
     return cost
+bounds = [(0.1, 0.9)]
+cost_function = partial(extract_cost, weight=0, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
+fitted_results = dual_annealing(cost_function, bounds)
+result_DA = Cost_Hybrid.fun_Power(np.array([2/3, 0.2833]), weight = 0, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
 
 DF = pd.DataFrame()
 for weight in np.array([0,0.005]):
