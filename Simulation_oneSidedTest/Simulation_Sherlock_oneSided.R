@@ -220,7 +220,7 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
     ### Split type I error (Approach 2) ###
     
     #. v is an array of proportion split to the non-borrowing cases 
-    v = seq(0,1,0.1)
+    v = seq(0.4,0.6,0.1)
     names(v) = paste0("cutoffValue_nonborrowing_", v)
     lower = -1e4
     upper = 1e4
@@ -382,7 +382,7 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
   type1Error = (sum (res$Z1/sqrt(res$var_Z1) > qnorm(1 - alpha_p))) / nrow(res)
   type1Error_n = (sum(ifelse(res$borrow, res$Z3/sqrt(res$var_Z3), res$Z1/sqrt(res$var_Z1)) > qnorm (1 - alpha_p)))/nrow(res)
   type1Error_normal = (sum (ifelse(res$borrow, res$Z3, res$Z1)/res$sigma_W > qnorm(1 - alpha_p)))/ nrow(res)
-  type1Error_s <- sapply (seq(0,1,0.1), function (ii){
+  type1Error_s <- sapply (seq(0.4,0.6,0.1), function (ii){
     (sum(ifelse(res$borrow, res$Z3 > res[, paste0("cv_borrowing_", ii)], res$Z1 > res[, paste0("cv_nonborrowing_", ii)])))/nrow(res)
   })
   type1Error_c = (sum(ifelse(res$borrow, res$Z3/res$sigma_Z3, res$Z1/res$sigma_Z1) > res$cutoffValue))/nrow(res)
