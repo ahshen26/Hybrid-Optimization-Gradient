@@ -21,22 +21,31 @@ sigma = 1
 alpha = 0.05
 alpha_EQ = 0.2
 
-# def extract_cost(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
-#     # Call the original objective function
-#     _, _, _, _, _, _, cost = Cost_Hybrid.fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
-#     return cost
-
 def extract_cost(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
-    updated_input = np.array([2/3, input[0]])
     # Call the original objective function
-    _, _, _, _, _, _, cost = Cost_Hybrid.fun_Power(updated_input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+    _, _, _, _, _, _, cost = Cost_Hybrid.fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
     return cost
-bounds = [(0.1, 0.9)]
-cost_function = partial(extract_cost, weight=0, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
+#
+# def extract_cost(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
+#     updated_input = np.array([2/3, input[0]])
+#     # Call the original objective function
+#     _, _, _, _, _, _, cost = Cost_Hybrid.fun_Power(updated_input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration)
+#     return cost
+bounds = [(0.1, 0.9), (0.1, 0.5)]
+cost_function = partial(extract_cost, weight=0.005, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
 fitted_results = dual_annealing(cost_function, bounds)
-result_DA = Cost_Hybrid.fun_Power(np.array([2/3, 0.2833]), weight = 0, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
+result_DA = Cost_Hybrid.fun_Power(fitted_results.x, weight = 0.005, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
+Cost_Hybrid.fun_Power(np.array([0.6302, 0.2851]), weight = 0, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
+optimalDesign = Cost_Hybrid.fun_Power(np.array([0.5756, 0.2861]), weight = 0, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4)
 
-DF = pd.DataFrame()
+columns = ["Weight", "Calibration", 'Randomization Ratio', 'Equivalence Margin', "N", "N_t", "Power_Reference", "Cost"] + \
+                      [f'Power_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.01)] + \
+                      [f'TypeIError_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.01)] + \
+                      [f'Beta_{round(i, 4)}' for i in np.arange(-0.6, 0.61, 0.01)]
+DF_optimalDesign = pd.DataFrame([[0, 4, 0.5756, 0.2861, optimalDesign[2], optimalDesign[3], optimalDesign[5], optimalDesign[6]] + list(optimalDesign[0]) + list(optimalDesign[1]) + list(optimalDesign[4])], columns=columns)
+DF_optimalDesign.to_csv(os.path.join(os.getcwd(), 'Optimal_design_calibration4_method2_weight_0.csv'), index=False)
+optimalDesign = pd.DataFrame(Cost_Hybrid.fun_Power(np.array([0.6071, 0.2864]), weight = 0, q=q, effectSize=effectSize, bias=bias, sigma=sigma, alpha=alpha, alpha_EQ=alpha_EQ, calibration=4))
+
 for weight in np.array([0,0.005]):
     for calibration in range(1,5):
         if calibration == 3:

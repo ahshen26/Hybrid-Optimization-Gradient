@@ -10,9 +10,9 @@ def fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibr
     if dimension == 3:
         n_col = input.shape[1]
         n_row = input.shape[2]
-        typeIerror_array = np.zeros((n_col, n_row, len(np.arange(-0.6, 0.61, 0.05))))
-        power_array = np.zeros((n_col, n_row, len(np.arange(-0.6, 0.61, 0.05))))
-        beta_array = np.zeros((n_col, n_row, len(np.arange(-0.6, 0.61, 0.05))))
+        typeIerror_array = np.zeros((n_col, n_row, len(np.arange(-0.6, 0.61, 0.01))))
+        power_array = np.zeros((n_col, n_row, len(np.arange(-0.6, 0.61, 0.01))))
+        beta_array = np.zeros((n_col, n_row, len(np.arange(-0.6, 0.61, 0.01))))
         totalN = np.zeros((n_col, n_row))
         nTreatmentArm_array = np.zeros((n_col, n_row))
         power_reference_array = np.zeros((n_col, n_row))
@@ -20,9 +20,9 @@ def fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibr
     elif dimension == 2:
         n_col = input.shape[0]
         n_row = 1
-        typeIerror_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.05))))
-        power_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.05))))
-        beta_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.05))))
+        typeIerror_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.01))))
+        power_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.01))))
+        beta_array = np.zeros((n_col, len(np.arange(-0.6, 0.61, 0.01))))
         totalN = np.zeros((n_col))
         nTreatmentArm_array = np.zeros((n_col))
         power_reference_array = np.zeros((n_col))
@@ -30,9 +30,9 @@ def fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibr
     else:
         n_col = 1
         n_row = 1
-        typeIerror_array = np.zeros((len(np.arange(-0.6, 0.61, 0.05))))
-        power_array = np.zeros((len(np.arange(-0.6, 0.61, 0.05))))
-        beta_array = np.zeros((len(np.arange(-0.6, 0.61, 0.05))))
+        typeIerror_array = np.zeros((len(np.arange(-0.6, 0.61, 0.01))))
+        power_array = np.zeros((len(np.arange(-0.6, 0.61, 0.01))))
+        beta_array = np.zeros((len(np.arange(-0.6, 0.61, 0.01))))
         totalN = 0
         nTreatmentArm_array = 0
         power_reference_array = 0
@@ -143,7 +143,7 @@ def fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibr
             power = np.array([])
             beta = np.array([])
 
-            for j in np.arange(-0.6, 0.61, 0.05):
+            for j in np.arange(-0.6, 0.61, 0.01):
                 if theta == 0:
                     beta = np.append(beta, 0)
                     typeIerror = np.append(typeIerror, norm.cdf(-cutoffValue_no_borr, 0, np.sqrt(x1_var)) + (1 - norm.cdf(cutoffValue_no_borr, 0, np.sqrt(x1_var))))
