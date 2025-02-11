@@ -287,7 +287,7 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
     
     cutoffValue <- uniroot(function(cutoffValue){
       standardized_cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[1] - alpha_p # standardize
-    },lower = -10, upper = 10, tol = 1e-8, maxiter = 1e4)$root
+    },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
     
     ### Power prior (Bayesian approach) ###
     
