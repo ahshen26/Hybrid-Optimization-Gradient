@@ -58,7 +58,7 @@ standardized_cutoff = function (cutoffValue, muZ1, muZ2, muZ3, sigmaZ1, sigmaZ2,
   # function Z1
   
   probability1 <- pmvnorm(lower = c(cutoffValue, theta), upper = c(Inf, Inf), mean = c(muZ1, muZ2), sigma = matrix(c(1, cov.Z1Z2, cov.Z1Z2, 1), nrow = 2)) + 
-    pmvnorm(lower = c(cutoffValue, -Inf), upper = c(Inf, -theta), mean = c(muZ1, muZ2), sigma = matrix(c(1, cov.Z1Z2, cov.Z1Z2, 1), nrow = 2)) +
+    pmvnorm(lower = c(cutoffValue, -Inf), upper = c(Inf, -theta), mean = c(muZ1, muZ2), sigma = matrix(c(1, cov.Z1Z2, cov.Z1Z2, 1), nrow = 2))
 
   
   # function Z3
