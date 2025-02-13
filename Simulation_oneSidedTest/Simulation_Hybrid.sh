@@ -6,7 +6,7 @@
 ########################################################
 
 # log hazard ratio between TRT and CONTROL
-for i in 0.1135942 0;
+for i in 0.3516406 0;
     do
     # log hazard ratio between CONTROL and RWD
     for j in `seq -0.7 0.1 0.7`;

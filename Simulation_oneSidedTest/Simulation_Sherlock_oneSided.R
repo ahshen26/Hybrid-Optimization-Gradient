@@ -219,8 +219,8 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
     #. v is an array of proportion split to the non-borrowing cases 
     v = seq(0.4,0.6,0.1)
     names(v) = paste0("cutoffValue_nonborrowing_", v)
-    lower = -1e4
-    upper = 1e4
+    lower = 0
+    upper = 10
     
     #. When cutoff value equals infinity, that is, we always reject null, the followings are the borrowing probability and non-borrowing probability
     #. We can not split a proportion of type I error that is higher than the borrowing probability to borrowing case. Vice versa
@@ -235,41 +235,41 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
     if (sum(typeIerror_nonborrowing > max_value_nonborrowing)>0) {
       cutoffValue_nonborrowing = sapply(1:length(v), function(ii) {ifelse((typeIerror_nonborrowing > max_value_nonborrowing)[ii] == TRUE, 0, uniroot(function(cutoffValue){
         cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[2] - typeIerror_nonborrowing[ii]
-      },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root)})
+      },lower = lower, upper = upper, tol = 1e-12, maxiter = 1e10)$root)})
       typeIerror_left = sapply(typeIerror_nonborrowing - max_value_nonborrowing, function(ii){ifelse(ii > 0, ii, 0)})
       
       typeIerror_borrowing = typeIerror_borrowing + typeIerror_left
       cutoffValue_borrowing = sapply(typeIerror_borrowing, function(ii) {
         uniroot(function(cutoffValue){
           cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[3] - ii
-        },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
+        },lower = lower, upper = upper, tol = 1e-12, maxiter = 1e10)$root
       })
     }
     #. If we split too much to borrowing cases:
     else if (sum(typeIerror_borrowing > max_value_borrowing)>0) {
       cutoffValue_borrowing = sapply(1:length(v), function(ii) {ifelse((typeIerror_borrowing > max_value_borrowing)[ii] == TRUE, 0, uniroot(function(cutoffValue){
         cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[3] - typeIerror_borrowing[ii]
-      },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root)})
+      },lower = lower, upper = upper, tol = 1e-12, maxiter = 1e10)$root)})
       typeIerror_left = sapply(typeIerror_borrowing - max_value_borrowing, function(ii){ifelse(ii > 0, ii, 0)})
       
       typeIerror_nonborrowing = typeIerror_nonborrowing + typeIerror_left
       cutoffValue_nonborrowing = sapply(typeIerror_nonborrowing, function(ii) {
         uniroot(function(cutoffValue){
           cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[2] - ii
-        },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
+        },lower = lower, upper = upper, tol = 1e-12, maxiter = 1e10)$root
       })
     }
     else {
       cutoffValue_borrowing = sapply (typeIerror_borrowing, function(ii) {
         uniroot(function(cutoffValue){
           cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[3] - ii
-        },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
+        },lower = lower, upper = upper, tol = 1e-12, maxiter = 1e10)$root
       })
       
       cutoffValue_nonborrowing = sapply (typeIerror_nonborrowing, function(ii) {
         uniroot(function(cutoffValue){
           cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[2] - ii
-        },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
+        },lower = lower, upper = upper, tol = 1e-12, maxiter = 1e10)$root
       })
     }
     ############################## New ############################
@@ -278,13 +278,13 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
     }
     else {
       cutoffValue_new = uniroot(function(cutoffValue){cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[3] - (alpha_p - cutoff(qnorm (1-alpha_p)*sigma_Z1, 0, Z2, -w*Z2, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[2])},
-                                lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
+                                lower = lower, upper = upper, tol = 1e-12, maxiter = 1e10)$root
     }
     ### Common cutoff value (Approach 3) ###
     
     cutoffValue <- uniroot(function(cutoffValue){
       standardized_cutoff(cutoffValue, 0, 0, 0, sigma_Z1, sigma_Z2, sigma_Z3, sqrt(covZ1Z2), delta, alphaEQ)[1] - alpha_p # standardize
-    },lower = lower, upper = upper, tol = 1e-8, maxiter = 1e4)$root
+    },lower = lower, upper = upper, tol = 1e-12, maxiter = 1e10)$root
     
     ### Power prior (Bayesian approach) ###
     
@@ -302,7 +302,7 @@ inference = function (dataset, alpha_p, delta, alphaEQ) {
     else {
       alphahat <- uniroot(function(alpha){
         logML(Z1, Z4, sigma_Z1, sigma_Z4, alpha, sig0 = 1e2, mu0 = 0)[2]
-      },lower = 0,upper = 1,tol = 1e-8, maxiter = 1e4)$root
+      },lower = 0,upper = 1,tol = 1e-12, maxiter = 1e10)$root
     }
     
     alphahat2 = optimize(logML2, interval = c(0, 1), X1 = Z1, sigma_X1 = sigma_Z1, X2 = Z4, sigma_X2 = sigma_Z4,  mu0 = 0, sigma0 = 1e2, maximum = TRUE, tol = .Machine$double.eps^0.5)$maximum
