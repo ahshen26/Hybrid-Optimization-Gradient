@@ -597,6 +597,6 @@ data = Simulation(dataset=D,
                   nsim = 500,
                   seed = NULL)
 res = inference(dataset = data, alpha_p = 0.05, delta = 0.3, alphaEQ = 0.2)                  
-                 
+
 fileName = paste0 ("Results_oneSided/Results_", logHR_trt_control, "_", logHR_control_RWD, "_", iter, ".Rds")
 saveRDS (res, fileName)

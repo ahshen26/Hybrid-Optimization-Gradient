@@ -4,7 +4,7 @@ from probFinder import func_getProb
 from scipy.stats import norm
 from scipy.optimize import root_scalar
 
-def fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
+def fun_Power(input, N, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibration):
     dimension = len(input.shape)
 
     if dimension == 3:
@@ -56,12 +56,12 @@ def fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibr
                 if calibration == 3:
                     p = input[2]
 
-            def calculate_sample_size(N):
-                x1_var = sigma ** 2 / (N * r * (1 - r))
-                return norm.cdf(-norm.ppf(1 - alpha / 2)*np.sqrt(x1_var), effectSize, np.sqrt(x1_var)) + (1 - norm.cdf(norm.ppf(1 - alpha / 2)*np.sqrt(x1_var), effectSize, np.sqrt(x1_var))) - 0.8
-
-            sol = root_scalar(calculate_sample_size, bracket=[1, 10000], method='brenth', xtol=1e-12, maxiter=10000)
-            N = np.round(sol.root)
+            # def calculate_sample_size(N):
+            #     x1_var = sigma ** 2 / (N * r * (1 - r))
+            #     return norm.cdf(-norm.ppf(1 - alpha / 2)*np.sqrt(x1_var), effectSize, np.sqrt(x1_var)) + (1 - norm.cdf(norm.ppf(1 - alpha / 2)*np.sqrt(x1_var), effectSize, np.sqrt(x1_var))) - 0.8
+            #
+            # sol = root_scalar(calculate_sample_size, bracket=[1, 10000], method='brenth', xtol=1e-12, maxiter=10000)
+            # N = np.round(sol.root)
 
             N_t = np.round(N * r)
             r = N_t / N
@@ -143,7 +143,7 @@ def fun_Power(input, weight, q, effectSize, bias, sigma, alpha, alpha_EQ, calibr
             power = np.array([])
             beta = np.array([])
 
-            for j in np.arange(-0.6, 0.61, 0.01):
+            for j in np.arange(-1, 1.01, 0.01):
                 if theta == 0:
                     beta = np.append(beta, 0)
                     typeIerror = np.append(typeIerror, norm.cdf(-cutoffValue_no_borr, 0, np.sqrt(x1_var)) + (1 - norm.cdf(cutoffValue_no_borr, 0, np.sqrt(x1_var))))
